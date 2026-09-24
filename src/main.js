@@ -13,21 +13,25 @@ const elements = {
   status: $('[data-status-copy]'), toast: $('[data-toast]'),
   reset: $('[data-action="reset"]'), supporterHud: $('[data-supporter-stat]'),
 };
-const format = value => new Intl.NumberFormat('de-DE', { maximumFractionDigits: value < 100 ? 1 : 0 }).format(value);
-const cashFormat = value => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+const integerFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
+const smallFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
+const moneyFormat = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const format = value => (value < 100 ? smallFormat : integerFormat).format(value);
+const cashFormat = value => moneyFormat.format(value);
 let state = loadState();
 let lastFrame = performance.now();
 let lastSave = lastFrame;
 let previousStage = null;
-let previousLevels = null;
 let lastCoin = 0;
+let lastRender = lastFrame;
+let reactionIndex = 0;
 
 function loadState() {
   try {
     const modern = localStorage.getItem(Game.CONFIG.saveKey);
-    if (modern) return Game.completeFlyer(Game.normalizeState(JSON.parse(modern)));
+    if (modern) return Game.normalizeState(JSON.parse(modern));
     const legacy = localStorage.getItem(Game.CONFIG.legacySaveKey);
-    return legacy ? Game.completeFlyer(Game.normalizeState(JSON.parse(legacy))) : Game.createInitialState();
+    return legacy ? Game.normalizeState(JSON.parse(legacy)) : Game.createInitialState();
   } catch {
     return Game.createInitialState();
   }
@@ -54,6 +58,48 @@ function flashScene() {
   void elements.scene.offsetWidth;
   elements.scene.classList.add('world--stage-reveal');
   setTimeout(() => elements.scene.classList.remove('world--stage-reveal'), 700);
+}
+
+function pulseStation(name, milestone) {
+  const room = $('.room--' + (name === 'helper' ? 'helpers' : name));
+  room.classList.remove('room--level-pulse', 'room--milestone-pulse');
+  void room.offsetWidth;
+  room.classList.add(milestone ? 'room--milestone-pulse' : 'room--level-pulse');
+  setTimeout(() => room.classList.remove('room--level-pulse', 'room--milestone-pulse'), milestone ? 700 : 340);
+}
+
+function flyerFeedback() {
+  const visual = Game.CONFIG.visual;
+  const button = elements.flyer;
+  button.classList.remove('game-button--pressed');
+  void button.offsetWidth;
+  button.classList.add('game-button--pressed');
+  clearTimeout(flyerFeedback.pressTimer);
+  flyerFeedback.pressTimer = setTimeout(() => button.classList.remove('game-button--pressed'), visual.pressMs);
+  const arm = $('[data-candidate] .actor__arm');
+  arm.animate([
+    { transform: 'rotate(0deg)' }, { transform: 'rotate(-55deg)', offset: 0.45 },
+    { transform: 'rotate(0deg)' },
+  ], { duration: visual.flyerAnimationMs, easing: 'steps(4, end)' });
+  const passers = document.querySelectorAll('.passer');
+  if (passers.length) {
+    const passer = passers[reactionIndex++ % passers.length];
+    passer.animate([
+      { filter: 'brightness(1)' }, { filter: 'brightness(1.6)', offset: 0.5 },
+      { filter: 'brightness(1)' },
+    ], { duration: visual.reactionMs, easing: 'steps(2, end)' });
+  }
+  const layer = $('[data-resource-burst-layer]');
+  if (layer.querySelectorAll('.flyer-particle').length < visual.maxFlyerParticles) {
+    const particle = document.createElement('span');
+    particle.className = 'flyer-particle';
+    particle.style.setProperty('--flyer-dx', Math.round(Math.random() * 90 - 45) + 'px');
+    layer.appendChild(particle);
+    setTimeout(() => particle.remove(), visual.flyerAnimationMs + 80);
+  }
+  elements.supporterHud.classList.remove('hud-stat--pulse');
+  void elements.supporterHud.offsetWidth;
+  elements.supporterHud.classList.add('hud-stat--pulse');
 }
 
 function confetti() {
@@ -85,14 +131,15 @@ function render() {
   const unlocked = Game.unlocks(state);
   const stage = Game.worldStage(state);
   const bottleneck = Game.bottlenecks(state);
-  const levels = [state.helperLevel, state.standLevel, state.officeLevel];
   elements.scene.dataset.stage = String(stage);
   elements.scene.dataset.helperTier = state.helperLevel >= 20 ? '20' : state.helperLevel >= 10 ? '10' : state.helperLevel >= 5 ? '5' : '1';
   elements.scene.dataset.standTier = state.standLevel >= 20 ? '20' : state.standLevel >= 10 ? '10' : state.standLevel >= 5 ? '5' : '1';
   elements.scene.dataset.officeTier = state.officeLevel >= 20 ? '20' : state.officeLevel >= 10 ? '10' : state.officeLevel >= 5 ? '5' : '1';
   elements.scene.classList.toggle('world--stand-jam', bottleneck.stand);
   elements.scene.classList.toggle('world--office-jam', bottleneck.office);
-  elements.scene.classList.toggle('world--flyer-cycle', Boolean(state.flyerEndsAt));
+  elements.scene.style.setProperty('--helper-route-duration',
+    Math.max(Game.CONFIG.helper.minVisualCycleSeconds,
+      Game.CONFIG.helper.visualContactsPerCycle / Math.max(Game.helperRate(state), 0.001)) + 's');
   elements.supporters.textContent = format(state.supporters);
   elements.euros.textContent = cashFormat(state.euros);
   elements.supportRate.textContent = state.helperLevel ? '+' + format(Game.supporterRate(state) * 60) + '/min' : '';
@@ -100,8 +147,8 @@ function render() {
   elements.cashHud.hidden = !unlocked.cash;
   $('.game-hud').classList.toggle('game-hud--compact', !unlocked.cash);
   elements.reset.hidden = stage === 0;
-  elements.flyer.disabled = Boolean(state.flyerEndsAt) || state.electionFinished;
-  elements.flyer.querySelector('small').textContent = state.flyerEndsAt ? 'Übergabe läuft …' : '+1 Unterstützer';
+  elements.flyer.disabled = state.electionFinished;
+  elements.flyer.querySelector('small').textContent = '+1 Unterstützer · sofort';
   renderStation('helper', state.helperLevel, unlocked.helper);
   renderStation('stand', state.standLevel, unlocked.stand);
   renderStation('office', state.officeLevel, unlocked.office);
@@ -133,11 +180,9 @@ function render() {
   if (previousStage !== null && stage > previousStage) {
     flashScene();
     if (stage === 6) confetti();
-  } else if (previousLevels && levels.some((value, i) => value > previousLevels[i])) {
-    flashScene();
   }
   previousStage = stage;
-  previousLevels = levels;
+  lastRender = performance.now();
 }
 
 function purchase(name) {
@@ -145,6 +190,7 @@ function purchase(name) {
   state = Game.buyStation(state, name);
   if (state[name + 'Level'] > before) {
     render();
+    if (before > 0) pulseStation(name, Game.CONFIG[name].milestones.includes(state[name + 'Level']));
     saveState();
     toast((name === 'helper' ? 'Helferteam' : name === 'stand' ? 'Infostand' : 'Ortsbüro') +
       ' · Level ' + state[name + 'Level']);
@@ -152,11 +198,10 @@ function purchase(name) {
 }
 
 elements.flyer.addEventListener('click', () => {
-  if (state.flyerEndsAt || state.electionFinished) return;
-  elements.scene.style.setProperty('--flyer-delay', '0ms');
-  state = Game.startFlyer(state);
+  if (state.electionFinished) return;
+  state = Game.distributeFlyer(state);
   render();
-  saveState();
+  flyerFeedback();
 });
 for (const name of ['helper', 'stand', 'office']) {
   $('[data-action="' + name + '"]').addEventListener('click', () => purchase(name));
@@ -175,7 +220,6 @@ elements.reset.addEventListener('click', () => {
   localStorage.removeItem(Game.CONFIG.legacySaveKey);
   state = Game.createInitialState();
   previousStage = null;
-  previousLevels = null;
   render();
   saveState();
   toast('Neuer Spielstand gestartet.');
@@ -185,12 +229,12 @@ function frame(now) {
   const delta = Math.min(1, Math.max(0, (now - lastFrame) / 1000));
   lastFrame = now;
   const beforeSupporters = state.supporters;
-  const beforeFlyer = state.flyerEndsAt;
   if (!state.electionFinished) {
     state = Game.tick(state, delta);
-    if (state.flyerEndsAt !== beforeFlyer || state.supporters !== beforeSupporters || Game.euroRate(state)) render();
+    if (now - lastRender >= Game.CONFIG.tickMs &&
+      (state.supporters !== beforeSupporters || Game.euroRate(state))) render();
   }
-  if (Game.euroRate(state) && now - lastCoin > 5000) {
+  if (Game.euroRate(state) && now - lastCoin > Game.CONFIG.visual.coinIntervalMs) {
     elements.scene.classList.remove('world--coin');
     void elements.scene.offsetWidth;
     elements.scene.classList.add('world--coin');
@@ -200,10 +244,6 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-if (state.flyerEndsAt) {
-  const elapsed = Math.max(0, Game.CONFIG.flyerDurationMs - (state.flyerEndsAt - Date.now()));
-  elements.scene.style.setProperty('--flyer-delay', '-' + elapsed + 'ms');
-}
 render();
 requestAnimationFrame(() => elements.scene.classList.add('world--ready'));
 requestAnimationFrame(frame);

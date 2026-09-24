@@ -36,30 +36,62 @@ async function run() {
       await page.goto(url);
       await page.evaluate(() => localStorage.clear());
       await page.reload();
+      const capture = async phase => {
+        await page.waitForTimeout(600);
+        await page.screenshot({
+          path: path.join(os.tmpdir(), 'amtsweg-polish-' + width + '-' + phase + '.png'),
+          fullPage: true,
+        });
+      };
       assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '0');
       assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
       assert.equal(await page.locator('[data-action="flyer"]').isVisible(), true);
       assert.equal(await page.locator('[data-action="donate"]').count(), 0);
-      if (width === 390) {
-        await page.screenshot({ path: path.join(os.tmpdir(), 'amtsweg-qa-fresh-390.png'), fullPage: true });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), false);
+      for (const selector of ['.room--helpers', '.info-stand', '.campaign-house', '.cityhall', '[data-build="helper"]']) {
+        assert.equal(await page.locator(selector).isVisible(), false, selector + ' visible at start');
       }
+      await capture('fresh');
+      const clickAudit = await page.evaluate(() => {
+        const button = document.querySelector('[data-action="flyer"]');
+        for (let i = 0; i < 10; i += 1) button.click();
+        const ten = state.supporters;
+        for (let i = 0; i < 100; i += 1) button.click();
+        return { ten, total: state.supporters, disabled: button.disabled,
+          particles: document.querySelectorAll('.flyer-particle').length };
+      });
+      assert.deepEqual(clickAudit, { ten: 10, total: 110, disabled: false, particles: 12 });
+      await page.waitForTimeout(700);
+      assert.equal(await page.locator('.flyer-particle').count(), 0);
       await page.locator('[data-action="flyer"]').click();
-      assert.equal(await page.locator('[data-action="flyer"]').isDisabled(), true);
-      assert.equal(await page.locator('[data-supporters]').innerText(), '0');
-      await page.waitForTimeout(1900);
-      assert.equal(await page.locator('[data-supporters]').innerText(), '1');
-      await page.evaluate(() => { state.supporters = 50; state.euros = 10000; render(); });
+      assert.equal(await page.evaluate(() => state.supporters), 111);
+      await page.evaluate(() => { state.supporters = Game.CONFIG.cashUnlockSupporters; render(); });
+      assert.equal(await page.locator('[data-euro-stat]').isVisible(), true);
+      await capture('cash');
+      await page.evaluate(() => { state.euros = 10000; render(); });
       await page.locator('[data-action="helper"]').click();
-      for (let i = 0; i < 4; i += 1) await page.locator('[data-upgrade="helper"]').click();
-      await page.evaluate(() => { state.supporters = 150; render(); });
+      await capture('helper');
+      const helperCycleAtOne = await page.locator('.helper--one').evaluate(element => parseFloat(getComputedStyle(element).animationDuration));
+      await page.waitForTimeout(150);
+      await page.locator('[data-upgrade="helper"]').click();
+      assert.equal(await page.locator('[data-scene]').evaluate(element => element.classList.contains('world--stage-reveal')), false);
+      assert.equal(await page.locator('.room--helpers').evaluate(element => element.classList.contains('room--level-pulse')), true);
+      for (let i = 0; i < 3; i += 1) await page.locator('[data-upgrade="helper"]').click();
+      const helperCycleAtFive = await page.locator('.helper--one').evaluate(element => parseFloat(getComputedStyle(element).animationDuration));
+      assert.ok(helperCycleAtFive < helperCycleAtOne);
+      assert.equal(await page.locator('.room--helpers').evaluate(element => element.classList.contains('room--milestone-pulse')), true);
+      await page.evaluate(() => { state.supporters = Game.CONFIG.stand.unlockSupporters; render(); });
       await page.locator('[data-action="stand"]').click();
+      await capture('stand');
       for (let i = 0; i < 9; i += 1) await page.locator('[data-upgrade="stand"]').click();
-      await page.evaluate(() => { state.supporters = 350; render(); });
+      await page.evaluate(() => { state.supporters = Game.CONFIG.office.unlockSupporters; render(); });
       await page.locator('[data-action="office"]').click();
+      await capture('office');
       for (let i = 0; i < 4; i += 1) await page.locator('[data-upgrade="office"]').click();
-      await page.evaluate(() => { state.supporters = 650; render(); saveState(); });
+      await page.evaluate(() => { state.supporters = Game.CONFIG.election.revealSupporters; render(); saveState(); });
       assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '5');
       assert.equal(await page.locator('[data-chapter-progress]').isVisible(), true);
+      await capture('election');
       await page.reload();
       assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '5');
       await page.waitForTimeout(550);
@@ -76,9 +108,6 @@ async function run() {
       });
       assert.deepEqual(visibleMilestones, { secondHelper: true, secondDesk: true, secondWorker: true });
       await page.evaluate(() => { state.helperLevel = 5; state.officeLevel = 5; render(); });
-      if (width === 1440 || width === 390) {
-        await page.screenshot({ path: path.join(os.tmpdir(), 'amtsweg-qa-' + width + '.png'), fullPage: true });
-      }
       const layout = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
         flyer: document.querySelector('[data-action="flyer"]').getBoundingClientRect().width > 0,

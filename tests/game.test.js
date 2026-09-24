@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const Game = require('../src/game.js');
+const { simulate } = require('../scripts/balance.cjs');
 const C = Game.CONFIG;
 const fresh = () => Game.createInitialState(1000);
 const withResources = (state, supporters, euros) => ({ ...state, supporters, euros });
@@ -13,13 +14,30 @@ test('fresh save exposes only stage zero and hides cash', () => {
   assert.equal(Game.supporterRate(s), 0);
 });
 
-test('cash unlocks at 50 and follows the supporter formula', () => {
-  assert.equal(Game.unlocks(withResources(fresh(), 49, 0)).cash, false);
-  const s = withResources(fresh(), 50, 0);
+test('cash unlocks after the rebalanced supporter threshold', () => {
+  assert.equal(Game.unlocks(withResources(fresh(), C.cashUnlockSupporters - 1, 0)).cash, false);
+  const s = withResources(fresh(), C.cashUnlockSupporters, 0);
   assert.equal(Game.unlocks(s).cash, true);
-  assert.equal(Game.euroRate(s), 0.135);
-  assert.equal(Game.euroRate(withResources(s, 200, 0)), 0.36);
+  assert.ok(Game.euroRate(s) > 0);
+  assert.ok(Game.euroRate(withResources(s, 2000, 0)) > Game.euroRate(s));
+  const earlyLift = Game.euroRate(withResources(s, 2000, 0)) - Game.euroRate(s);
+  const lateLift = Game.euroRate(withResources(s, 3650, 0)) - Game.euroRate(withResources(s, 2000, 0));
+  assert.ok(lateLift < earlyLift, 'fundraising should saturate as the base grows');
   assert.ok(Game.tick(s, 1, 2000).euros > 0);
+});
+
+test('active clicker replay reaches target pace at four clicks per second', () => {
+  const slow = simulate(2).minutes;
+  const normal = simulate(4).minutes;
+  const fast = simulate(6).minutes;
+  assert.ok(normal.cash >= 1 && normal.cash <= 2);
+  assert.ok(normal.helper >= 5 && normal.helper <= 7);
+  assert.ok(normal.stand >= 12 && normal.stand <= 16);
+  assert.ok(normal.office >= 24 && normal.office <= 28);
+  assert.ok(normal.finished >= 40 && normal.finished <= 45);
+  for (const key of ['cash', 'helper', 'stand', 'office', 'finished']) {
+    assert.ok(fast[key] < normal[key] && normal[key] < slow[key], key);
+  }
 });
 
 test('no manual donation command exists', () => {
@@ -27,32 +45,30 @@ test('no manual donation command exists', () => {
   assert.equal(C.donationClickEuros, undefined);
 });
 
-test('flyer has a locked action state and awards only after completion', () => {
-  let s = Game.startFlyer(fresh(), 1000);
-  assert.equal(s.supporters, 0);
-  assert.equal(s.flyerEndsAt, 2800);
-  assert.deepEqual(Game.startFlyer(s, 1100), s);
-  assert.equal(Game.completeFlyer(s, 2799).supporters, 0);
-  s = Game.completeFlyer(s, 2800);
-  assert.equal(s.supporters, 1);
-  assert.equal(s.flyerEndsAt, 0);
-  assert.equal(Game.completeFlyer(s, 2900).supporters, 1);
+test('every rapid flyer click is accepted and awarded immediately', () => {
+  let s = fresh();
+  for (let i = 0; i < 10; i += 1) {
+    s = Game.distributeFlyer(s, 1000);
+    assert.equal(s.supporters, i + 1);
+  }
+  assert.equal(Game.startFlyer, undefined);
+  assert.equal(s.flyerEndsAt, undefined);
 });
 
 test('helper requires cash unlock and money; first purchase automates', () => {
   assert.equal(Game.canBuy(withResources(fresh(), 0, 999), 'helper'), false);
-  let s = withResources(fresh(), 50, 45);
+  let s = withResources(fresh(), C.cashUnlockSupporters, C.helper.buildCost);
   assert.equal(Game.canBuy(s, 'helper'), true);
   s = Game.buyStation(s, 'helper', 1000);
   assert.equal(s.helperLevel, 1);
   assert.equal(s.euros, 0);
-  assert.equal(Game.helperRate(s), 0.25);
+  assert.equal(Game.helperRate(s), C.helper.basePerSecond);
 });
 
 test('helper costs grow and level five changes production', () => {
-  let s = withResources(fresh(), 50, 1000);
-  assert.equal(Game.stationCost('helper', 0), 45);
-  assert.equal(Game.stationCost('helper', 1), 16);
+  let s = withResources(fresh(), C.cashUnlockSupporters, 1000);
+  assert.equal(Game.stationCost('helper', 0), C.helper.buildCost);
+  assert.equal(Game.stationCost('helper', 1), Math.ceil(C.helper.upgradeBase * C.helper.upgradeGrowth));
   for (let i = 0; i < 4; i += 1) s = Game.buyStation(s, 'helper', 1000);
   const before = Game.helperRate(s);
   s = Game.buyStation(s, 'helper', 1000);
@@ -62,23 +78,23 @@ test('helper costs grow and level five changes production', () => {
 });
 
 test('stand gate requires helper level five and supporters', () => {
-  let s = withResources(fresh(), 150, 1000);
+  let s = withResources(fresh(), C.stand.unlockSupporters, 1000);
   assert.equal(Game.canBuy(s, 'stand'), false);
   s.helperLevel = 4;
   assert.equal(Game.canBuy(s, 'stand'), false);
   s.helperLevel = 5;
-  s.supporters = 149;
+  s.supporters = C.stand.unlockSupporters - 1;
   assert.equal(Game.canBuy(s, 'stand'), false);
-  s.supporters = 150;
+  s.supporters = C.stand.unlockSupporters;
   assert.equal(Game.canBuy(s, 'stand'), true);
 });
 
 test('stand level raises capacity and processes helper output', () => {
-  let s = withResources(fresh(), 200, 10000);
+  let s = withResources(fresh(), C.stand.unlockSupporters, 10000);
   s.helperLevel = 10;
   s = Game.buyStation(s, 'stand', 1000);
   assert.equal(s.standLevel, 1);
-  assert.equal(Game.standCapacity(s), 0.5);
+  assert.equal(Game.standCapacity(s), C.stand.baseCapacityPerSecond);
   assert.equal(Game.bottlenecks(s).stand, true);
   const firstRate = Game.supporterRate(s);
   for (let i = 0; i < 9; i += 1) s = Game.buyStation(s, 'stand', 1000);
@@ -87,20 +103,20 @@ test('stand level raises capacity and processes helper output', () => {
   assert.ok(Game.supporterRate(s) > firstRate);
 });
 
-test('office gate follows stand level ten and 350 supporters', () => {
-  let s = withResources(fresh(), 350, 1000);
+test('office gate follows stand level ten and the supporter threshold', () => {
+  let s = withResources(fresh(), C.office.unlockSupporters, 1000);
   s.helperLevel = 5;
   s.standLevel = 9;
   assert.equal(Game.canBuy(s, 'office'), false);
   s.standLevel = 10;
-  s.supporters = 349;
+  s.supporters = C.office.unlockSupporters - 1;
   assert.equal(Game.canBuy(s, 'office'), false);
-  s.supporters = 350;
+  s.supporters = C.office.unlockSupporters;
   assert.equal(Game.canBuy(s, 'office'), true);
 });
 
 test('office levels improve fundraising subject to capacity', () => {
-  let s = withResources(fresh(), 350, 10000);
+  let s = withResources(fresh(), C.office.unlockSupporters, 10000);
   s.helperLevel = 5;
   s.standLevel = 10;
   const oldRate = Game.euroRate(s);
@@ -124,7 +140,7 @@ test('election cannot be revealed or run by skipping the station chain', () => {
 });
 
 test('election reveal and finish require office five, supporters and cash', () => {
-  let s = withResources(fresh(), 650, 1000);
+  let s = withResources(fresh(), C.election.revealSupporters, 1000);
   s.helperLevel = 5; s.standLevel = 10; s.officeLevel = 4;
   assert.equal(Game.unlocks(s).election, false);
   s.officeLevel = 5;

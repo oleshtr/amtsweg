@@ -7,28 +7,34 @@
 
   const CONFIG = Object.freeze({
     saveKey: 'amtsweg-v0.2-save', legacySaveKey: 'amtsweg-v0.1-save',
-    tickMs: 250, saveMs: 3000, flyerDurationMs: 1800, flyerSupporters: 1,
-    cashUnlockSupporters: 50, cashBasePerSecond: 0.06, cashPerSupporterPerSecond: 0.0015,
+    tickMs: 250, saveMs: 3000, flyerSupporters: 1,
+    cashUnlockSupporters: 350, cashBasePerSecond: 0.06,
+    cashSupporterScale: 1.8, cashSaturationSupporters: 2500,
+    visual: Object.freeze({
+      maxFlyerParticles: 12, flyerAnimationMs: 450, pressMs: 130,
+      reactionMs: 360, coinIntervalMs: 5000,
+    }),
     helper: Object.freeze({
-      buildCost: 45, upgradeBase: 12, upgradeGrowth: 1.32,
-      basePerSecond: 0.25, levelBonus: 0.16, milestone5Multiplier: 1.4,
+      buildCost: 130, upgradeBase: 25, upgradeGrowth: 1.32,
+      basePerSecond: 1.25, levelBonus: 0.16, milestone5Multiplier: 1.4,
+      visualContactsPerCycle: 10, minVisualCycleSeconds: 2.5,
       milestones: Object.freeze([1, 5, 10, 20]),
     }),
     stand: Object.freeze({
-      unlockHelperLevel: 5, unlockSupporters: 150, buildCost: 110,
-      upgradeBase: 25, upgradeGrowth: 1.18, baseCapacityPerSecond: 0.5,
-      capacityPerLevel: 0.11, outputMultiplier: 1.3, multiplierPerLevel: 0.018,
+      unlockHelperLevel: 5, unlockSupporters: 900, buildCost: 150,
+      upgradeBase: 27, upgradeGrowth: 1.18, baseCapacityPerSecond: 2,
+      capacityPerLevel: 0.4, outputMultiplier: 1.3, multiplierPerLevel: 0.018,
       milestones: Object.freeze([1, 5, 10, 20]),
     }),
     office: Object.freeze({
-      unlockStandLevel: 10, unlockSupporters: 350, buildCost: 350,
-      upgradeBase: 85, upgradeGrowth: 1.27, fundraisingMultiplier: 1.8,
+      unlockStandLevel: 10, unlockSupporters: 2200, buildCost: 350,
+      upgradeBase: 90, upgradeGrowth: 1.27, fundraisingMultiplier: 1.8,
       multiplierPerLevel: 0.1, baseCapacityPerSecond: 1.15, capacityPerLevel: 0.15,
       milestones: Object.freeze([1, 5, 10, 20]),
     }),
     election: Object.freeze({
-      revealOfficeLevel: 5, revealSupporters: 650,
-      targetSupporters: 1300, entryCost: 1100,
+      revealOfficeLevel: 5, revealSupporters: 4500,
+      targetSupporters: 6500, entryCost: 1100,
     }),
   });
 
@@ -39,7 +45,7 @@
 
   function createInitialState(now = Date.now()) {
     return { supporters: 0, euros: 0, helperLevel: 0, standLevel: 0, officeLevel: 0,
-      flyerEndsAt: 0, electionFinished: false, startedAt: now, lastUpdatedAt: now };
+      electionFinished: false, startedAt: now, lastUpdatedAt: now };
   }
 
   function normalizeState(input, now = Date.now()) {
@@ -56,7 +62,7 @@
       supporters >= CONFIG.election.targetSupporters;
     return { supporters, euros: nonnegative(source.euros), helperLevel,
       standLevel: safeStand, officeLevel: safeOffice,
-      flyerEndsAt: nonnegative(source.flyerEndsAt), electionFinished: finished,
+      electionFinished: finished,
       startedAt: nonnegative(source.startedAt) || now,
       lastUpdatedAt: nonnegative(source.lastUpdatedAt) || now };
   }
@@ -92,7 +98,8 @@
 
   function rawCashRate(state) {
     if (state.supporters < CONFIG.cashUnlockSupporters) return 0;
-    return CONFIG.cashBasePerSecond + state.supporters * CONFIG.cashPerSupporterPerSecond;
+    return CONFIG.cashBasePerSecond + CONFIG.cashSupporterScale * state.supporters /
+      (state.supporters + CONFIG.cashSaturationSupporters);
   }
 
   function euroRate(state) {
@@ -152,20 +159,10 @@
     return next;
   }
 
-  function startFlyer(state, now = Date.now()) {
+  function distributeFlyer(state, now = Date.now()) {
     const next = normalizeState(state, now);
-    if (!next.electionFinished && !next.flyerEndsAt) {
-      next.flyerEndsAt = now + CONFIG.flyerDurationMs;
-      next.lastUpdatedAt = now;
-    }
-    return next;
-  }
-
-  function completeFlyer(state, now = Date.now()) {
-    const next = normalizeState(state, now);
-    if (!next.electionFinished && next.flyerEndsAt && now >= next.flyerEndsAt) {
+    if (!next.electionFinished) {
       next.supporters += CONFIG.flyerSupporters;
-      next.flyerEndsAt = 0;
       next.lastUpdatedAt = now;
     }
     return next;
@@ -180,7 +177,7 @@
     next.euros = next.euros +
       (euroRate({ ...next, supporters: priorSupporters }) + euroRate(next)) * seconds / 2;
     next.lastUpdatedAt = now;
-    return completeFlyer(next, now);
+    return next;
   }
 
   function canRunElection(state) {
@@ -194,13 +191,12 @@
     if (!canRunElection(next)) return next;
     next.euros = money(next.euros - CONFIG.election.entryCost);
     next.electionFinished = true;
-    next.flyerEndsAt = 0;
     next.lastUpdatedAt = now;
     return next;
   }
 
   return { CONFIG, createInitialState, normalizeState, stationCost, helperRate,
     standCapacity, throughput, supporterRate, rawCashRate, euroRate, bottlenecks,
-    unlocks, worldStage, canBuy, buyStation, startFlyer, completeFlyer, tick,
+    unlocks, worldStage, canBuy, buyStation, distributeFlyer, tick,
     canRunElection, runElection };
 });

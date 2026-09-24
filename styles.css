@@ -1702,18 +1702,8 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 .primary-actions { grid-template-columns: 1fr; }
 .control-deck { grid-template-columns: minmax(230px, 360px) 1fr; }
 .game-button { justify-content: center; min-height: 60px; }
-.world[data-stage="0"] .settings-button { display: none; }
 .world { transition: none; }
 .world--ready { transition: height .42s steps(5, end); }
-.manual-passer {
-  display: none; left: 54%; bottom: 70px; z-index: 8;
-}
-.world--flyer-cycle .manual-passer {
-  display: block; animation: manualApproach 1.8s steps(9, end) var(--flyer-delay, 0ms) both;
-}
-.world--flyer-cycle .candidate .actor__arm { animation: flyerHandover 1.8s steps(5, end) var(--flyer-delay, 0ms) both; }
-.world--flyer-cycle .candidate .hand-flyer { animation: flyerTransfer 1.8s steps(5, end) var(--flyer-delay, 0ms) both; }
-.world--flyer-cycle .manual-passer .actor__body { animation: passerReact 1.8s steps(3, end) var(--flyer-delay, 0ms) both; }
 .donation-point {
   display: none; position: absolute; left: 61%; bottom: 72px; z-index: 7;
   width: 42px; height: 43px; border: 4px solid var(--ink);
@@ -1791,20 +1781,8 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 .world--office-jam .cash-machine { box-shadow: -15px -7px 0 var(--yellow), -18px -10px 0 var(--ink); }
 .donor { display: none; left: 69%; bottom: 70px; }
 .world--coin .donor { display: block; animation: donorVisit 1s steps(6, end) both; }
-.world[data-stage="3"] .passer--two,
-.world[data-stage="4"] .passer--two,
-.world[data-stage="5"] .passer--two,
-.world[data-stage="6"] .passer--two { animation: standVisit 8s linear infinite; }
 .election-action { margin-top: 7px; background: #a7e5a7; }
 .chapter-progress { max-width: 520px; }
-@keyframes manualApproach {
-  0% { transform: translateX(130px) scale(.8); opacity: 0; }
-  35%, 70% { transform: translateX(0) scale(.8); opacity: 1; }
-  90%, 100% { transform: translateX(-65px) scale(.8); opacity: 0; }
-}
-@keyframes flyerHandover { 0%, 32% { transform: rotate(0); } 50%, 75% { transform: rotate(-45deg); } 100% { transform: rotate(0); } }
-@keyframes flyerTransfer { 0%, 48% { opacity: 1; } 55%, 100% { opacity: 0; } }
-@keyframes passerReact { 0%, 54% { background: var(--red); } 60%, 100% { background: var(--green); } }
 @keyframes coinDrop { 0%, 15% { opacity: 0; transform: translate(30px,-20px); } 30% { opacity: 1; } 90% { opacity: 1; transform: translate(0,20px); } 100% { opacity: 0; transform: translate(0,20px); } }
 @keyframes donorVisit { 0% { opacity: 0; transform: translateX(70px) scale(.8); } 35%,70% { opacity: 1; transform: translateX(0) scale(.8); } 100% { opacity: 0; transform: translateX(-45px) scale(.8); } }
 @keyframes standVisit { 0% { transform: translateX(0) scale(.8); } 35%,60% { transform: translateX(720px) scale(.8); } 100% { transform: translateX(1100px) scale(.8); } }
@@ -1828,7 +1806,6 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   .station-build--office { left: 5%; }
   .station-control { width: min(160px, 66%); padding: 4px; font-size: 8px; }
   .station-control strong { font-size: 10px; }
-  .manual-passer { left: 50%; }
   .donation-point { left: 70%; }
   .stand-queue { left: 36%; }
   .world[data-stage="3"] .passer--two,
@@ -1840,3 +1817,222 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   .world[data-stage="6"] .room--office { display: block; }
 }
 @keyframes standVisitMobile { 0% { transform: translateX(0) scale(.8); } 35%,60% { transform: translateX(230px) scale(.8); } 100% { transform: translateX(500px) scale(.8); } }
+
+/* Town street: visual life is present before any production station unlocks. */
+.sky {
+  background: linear-gradient(#64b8e6 0%, #91daf2 61%, #c3eced 100%);
+}
+.skyline { opacity: .12; }
+.townscape {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  animation: townParallax 15s ease-in-out infinite alternate;
+}
+.town-house {
+  position: absolute; bottom: 74px; width: 16%; height: 132px;
+  border: 4px solid #34445b; background: #e4c3a1;
+  box-shadow: inset -11px 0 #c4a181, 6px 6px 0 #3a556a55;
+}
+.town-house::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 22px; height: 6px;
+  background: #ffe2b8; box-shadow: 0 8px #ba816d;
+}
+.town-house--bakery { left: 3%; height: 146px; width: 17%; background: #e7c7a4; }
+.town-house--homes { left: 22%; height: 165px; width: 18%; background: #bfd0d3; box-shadow: inset -11px 0 #93abb4, 6px 6px 0 #3a556a55; }
+.town-house--cafe { right: 9%; height: 140px; width: 19%; background: #e3b4ad; box-shadow: inset -11px 0 #bb8b89, 6px 6px 0 #3a556a55; }
+.town-house__roof {
+  position: absolute; left: -9px; right: -9px; top: -20px; height: 23px;
+  border: 4px solid #34445b; background: #8d5a53;
+  clip-path: polygon(0 100%, 7% 10%, 93% 10%, 100% 100%);
+  box-shadow: inset 0 5px #c77e65;
+}
+.town-house--homes .town-house__roof { background: #577b92; }
+.town-house--cafe .town-house__roof { background: #705c72; }
+.town-house__windows {
+  position: absolute; left: 11%; right: 11%; top: 42px; height: 43px;
+  background: repeating-linear-gradient(90deg, #34445b 0 4px, #91d4e0 4px 24px, #e9f2e1 24px 29px, transparent 29px 48px);
+  border-top: 4px solid #34445b; border-bottom: 4px solid #34445b;
+  box-shadow: inset 0 -10px #74adbd, 0 5px #7c605b;
+}
+.town-house__door {
+  position: absolute; left: 41%; bottom: 0; width: 29px; height: 39px;
+  border: 4px solid #34445b; border-bottom: 0;
+  background: #735969; box-shadow: inset -6px 0 #504453;
+}
+.town-house b {
+  position: absolute; z-index: 1; left: 16%; right: 16%; top: 13px;
+  padding: 3px; border: 2px solid #34445b; background: #fff2c8;
+  font-size: 8px; text-align: center; letter-spacing: .04em;
+}
+.tree {
+  position: absolute; bottom: 72px; width: 20px; height: 93px;
+  background: linear-gradient(90deg, #5e4b39 0 65%, #8e6945 65%);
+  border: 3px solid #34445b;
+}
+.tree::before, .tree::after, .tree span {
+  content: ""; position: absolute; border: 4px solid #2d5b54;
+  background: #56a777; box-shadow: inset 8px 6px #88ca85, 4px 4px #26495555;
+}
+.tree::before { left: -23px; top: -22px; width: 57px; height: 32px; }
+.tree::after { left: -14px; top: -47px; width: 42px; height: 34px; }
+.tree span { left: -5px; top: -62px; width: 27px; height: 25px; }
+.tree--one { left: 43%; }
+.tree--two { right: 29%; transform: scale(.83); transform-origin: bottom; }
+.streetlamp {
+  position: absolute; bottom: 73px; width: 7px; height: 131px;
+  background: #41536a; border: 2px solid #263b52;
+}
+.streetlamp::before {
+  content: ""; position: absolute; left: -12px; top: -13px; width: 27px; height: 18px;
+  border: 3px solid #34445b; background: #fff2a4;
+  box-shadow: 0 8px 24px #fff3a871, inset 4px 0 #fff9d4;
+}
+.streetlamp--one { left: 20%; }
+.streetlamp--two { right: 7%; }
+.bench {
+  position: absolute; right: 32%; bottom: 76px; width: 70px; height: 16px;
+  border: 3px solid #34445b; background: #b27851;
+  box-shadow: 0 -15px 0 -1px #875c4b, 0 -18px 0 2px #34445b, 5px 17px #34445b, 55px 17px #34445b;
+}
+.mailbox {
+  position: absolute; right: 5%; bottom: 73px; width: 30px; height: 43px;
+  display: grid; place-items: center; border: 4px solid #34445b;
+  background: #f4c142; box-shadow: inset -5px 0 #ce8e2b;
+  font-size: 17px; font-weight: 900;
+}
+.campaign-point {
+  position: absolute; z-index: 6; left: 26%; bottom: 71px;
+  width: 116px; height: 90px; pointer-events: none;
+}
+.campaign-point__table {
+  position: absolute; left: 5px; bottom: 21px; width: 106px; height: 15px;
+  border: 4px solid #23384f; background: #c68b62;
+  box-shadow: inset 0 4px #f2c190, 0 4px #23384f;
+}
+.campaign-point__table::before, .campaign-point__table::after {
+  content: ""; position: absolute; bottom: -32px; height: 30px; width: 7px; background: #34445b;
+}
+.campaign-point__table::before { left: 10px; }
+.campaign-point__table::after { right: 10px; }
+.campaign-point__box {
+  position: absolute; left: 14px; bottom: 35px; padding: 5px 6px;
+  border: 3px solid #34445b; background: #b1805a; color: #fff8d7;
+  font-size: 9px; font-weight: 900; box-shadow: inset -5px 0 #825d48;
+}
+.campaign-point__stack {
+  position: absolute; right: 13px; bottom: 39px; width: 31px; height: 9px;
+  border: 2px solid #34445b; background: #fff6db;
+  box-shadow: 0 -6px #fff6db, 0 -8px #34445b, 3px -13px #fff6db, 3px -15px #34445b;
+}
+.campaign-point__sign {
+  position: absolute; left: 16px; bottom: 51px; padding: 3px 5px;
+  border: 3px solid #34445b; background: #fff5d4;
+  color: #394960; font-size: 8px; font-weight: 900;
+  transform: rotate(-5deg);
+}
+.surface-strip {
+  bottom: 53px; height: 34px;
+  background: repeating-linear-gradient(90deg, #a4babb 0 55px, #7d989c 55px 58px, #b3c7c5 58px 110px);
+  box-shadow: inset 0 5px #e2e2cf, inset 0 -5px #667e8c;
+}
+.road {
+  background: repeating-linear-gradient(105deg, #6f8190 0 100px, #728696 100px 160px);
+  box-shadow: inset 0 5px #34445b, inset 0 -8px #536779;
+}
+.road-line { top: 25px; box-shadow: 3px 3px #41546a; }
+.candidate { left: 38%; z-index: 10; }
+.candidate::after, .passer::after {
+  content: ""; position: absolute; left: 5px; bottom: 0; width: 32px; height: 6px;
+  background: #263b5266; border-radius: 50%;
+}
+.passer { display: block; bottom: 69px; left: -65px; }
+.passer--one { --passer-scale: .8; animation: walkStreet 18s -7s linear infinite; }
+.passer--two { --passer-scale: .73; animation: walkStreet 23s -16s linear infinite; }
+.passer--three { --passer-scale: .62; animation: walkStreet 15s -4s linear infinite; }
+.passer--four { --passer-scale: .96; animation: walkStreet 27s -21s linear infinite; }
+.passer--three .actor__body { background: #c79c62; }
+.passer--three .actor__hair { background: #273f55; }
+.passer--four .actor__body { background: #8b79ba; }
+.passer--four .actor__hair { background: #9f684a; }
+.passer--four .actor__head { background: #bf8762; }
+.world[data-stage="3"] .passer--two,
+.world[data-stage="4"] .passer--two,
+.world[data-stage="5"] .passer--two,
+.world[data-stage="6"] .passer--two { animation: standVisit 8s -3s linear infinite; }
+.helper { left: 29%; }
+.world[data-stage] .helper--one { animation-duration: var(--helper-route-duration, 7s); }
+.world[data-stage] .helper--two { animation-duration: var(--helper-route-duration, 7s); }
+.helper__flyers { animation: helperFlyerLoad var(--helper-route-duration, 7s) steps(2, end) infinite; }
+.control-deck {
+  gap: 12px; padding: 11px 14px 16px;
+  border-top: 6px solid #14263d;
+  background: repeating-linear-gradient(90deg, #264963 0 14px, #294d67 14px 28px);
+  box-shadow: inset 0 5px #62869e;
+}
+.game-button--primary {
+  position: relative; min-height: 70px;
+  border-color: #121f32; border-radius: 7px;
+  background: linear-gradient(#ff7567 0 14%, #e9514a 14% 80%, #ad2f3c 80%);
+  box-shadow: inset 0 3px #ffc09e, inset 0 -5px #902b3a, 0 6px #101e30;
+  text-shadow: 2px 2px #8d3038;
+}
+.game-button--primary::after {
+  content: ""; position: absolute; inset: 7px; border: 2px dashed #ffffff38; pointer-events: none;
+}
+.game-button--pressed { transform: translateY(4px) !important; box-shadow: inset 0 3px #ffc09e, 0 2px #101e30 !important; }
+.game-button__icon { background: #fff1c5; box-shadow: inset -4px -4px #e0c28c; }
+.game-button strong { font-size: 14px; letter-spacing: .03em; }
+.game-button small { color: #fff5c9; }
+.chapter-progress {
+  border-color: #152a42; border-radius: 5px; background: #dce8d9;
+  box-shadow: inset 0 4px #fffef0, 0 5px #13283e;
+}
+.flyer-particle {
+  position: absolute; z-index: 32; left: 40%; bottom: 123px;
+  width: 15px; height: 19px; border: 2px solid #1a2b42;
+  background: #fff8df; box-shadow: inset -3px 0 #e8d8af;
+  animation: flyerBurst .45s ease-out forwards;
+}
+.room--level-pulse { animation: stationLevel .34s steps(3, end) !important; }
+.room--milestone-pulse { animation: stationMilestone .7s steps(5, end) !important; }
+@keyframes walkStreet {
+  0% { transform: translateX(0) scale(var(--passer-scale, .8)); }
+  100% { transform: translateX(calc(min(1180px, 100vw) + 90px)) scale(var(--passer-scale, .8)); }
+}
+@keyframes townParallax { from { transform: translateX(-4px); } to { transform: translateX(4px); } }
+@keyframes flyerBurst {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  100% { opacity: 0; transform: translate(var(--flyer-dx), -54px) rotate(32deg); }
+}
+@keyframes helperFlyerLoad {
+  0%, 10% { opacity: .25; }
+  15%, 49% { opacity: 1; }
+  52%, 100% { opacity: .25; }
+}
+@keyframes stationLevel {
+  0%,100% { filter: brightness(1); transform: translateY(0); }
+  50% { filter: brightness(1.25); transform: translateY(-4px); }
+}
+@keyframes stationMilestone {
+  0%,100% { filter: brightness(1); transform: translateY(0) scale(1); }
+  40% { filter: brightness(1.4); transform: translateY(-6px) scale(1.025); }
+}
+@media (max-width: 650px) {
+  .town-house--bakery { left: -8%; width: 27%; }
+  .town-house--homes { left: 19%; width: 26%; }
+  .town-house--cafe { right: -7%; width: 28%; }
+  .town-house b { font-size: 6px; }
+  .tree--one { left: 48%; }
+  .tree--two { right: 25%; }
+  .streetlamp--one { left: 17%; }
+  .streetlamp--two { right: 4%; }
+  .bench { right: 26%; transform: scale(.75); transform-origin: bottom; }
+  .mailbox { right: 4%; transform: scale(.75); transform-origin: bottom; }
+  .campaign-point { left: 4%; transform: scale(.72); transform-origin: bottom left; }
+  .candidate { left: 40%; }
+  .flyer-particle { left: 43%; bottom: 118px; }
+  .game-button strong { font-size: 12px; }
+  .world[data-stage="3"] .passer--two,
+  .world[data-stage="4"] .passer--two,
+  .world[data-stage="5"] .passer--two,
+  .world[data-stage="6"] .passer--two { animation-name: standVisitMobile; }
+}
