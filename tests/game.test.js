@@ -58,6 +58,10 @@ test('world stage follows earned progression from 0 through 6', () => {
   let state = Game.createInitialState();
   assert.equal(Game.worldStage(state), 0);
 
+  state.supporters = Game.CONFIG.election.unlockSupporters;
+  assert.equal(Game.worldStage(state), 1);
+  assert.equal(Game.unlocks(state).election, false);
+
   state.supporters = Game.CONFIG.donationUnlockSupporters;
   assert.equal(Game.worldStage(state), 1);
 
@@ -77,10 +81,13 @@ test('world stage follows earned progression from 0 through 6', () => {
   assert.equal(Game.worldStage(state), 6);
 });
 
-test('election is fail-closed until both requirements are met', () => {
+test('election is fail-closed until office and both requirements are met', () => {
   let state = Game.createInitialState();
-  state.supporters = 349;
+  state.supporters = 350;
   state.euros = 180;
+  assert.equal(Game.canRunElection(state), false);
+  state.officeOwned = true;
+  state.supporters = 349;
   assert.equal(Game.canRunElection(state), false);
   state.supporters = 350;
   state.euros = 179;
@@ -97,6 +104,7 @@ test('finished chapter no longer accrues idle progress', () => {
   state.supporters = 350;
   state.euros = 180;
   state.helpers = 3;
+  state.officeOwned = true;
   state = Game.runElection(state);
   const finished = Game.tick(state, 60);
   assert.equal(finished.supporters, 350);
