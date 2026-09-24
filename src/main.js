@@ -182,16 +182,13 @@ function renderVisibleHelpers() {
     helper.setAttribute('aria-hidden', 'true');
     helper.innerHTML = '<div class="actor__cap"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div><div class="helper__flyers"></div>';
 
-    const column = index % 6;
-    const row = Math.floor(index / 6);
-    const direction = index % 2 === 0 ? 1 : -1;
-    helper.style.left = (43 + column * 7.2) + '%';
-    helper.style.bottom = (69 + row * 8) + 'px';
-    helper.style.setProperty('--helper-scale', row >= 2 ? '.68' : row >= 1 ? '.75' : '.82');
-    helper.style.setProperty('--helper-distance-a', (direction * (22 + (index % 3) * 5)) + 'px');
-    helper.style.setProperty('--helper-distance-b', (direction * (44 + (index % 3) * 8)) + 'px');
-    helper.style.setProperty('--helper-delay', (-index * .47) + 's');
-    helper.style.setProperty('--helper-duration', Math.max(3.2, 7.2 - Math.min(index, 10) * .18) + 's');
+    const lane = index % 3;
+    const duration = 7.2 + (index % 4) * .35;
+    helper.style.left = '29%';
+    helper.style.bottom = (69 + lane * 3) + 'px';
+    helper.style.setProperty('--helper-scale', lane === 2 ? '.76' : lane === 1 ? '.8' : '.84');
+    helper.style.setProperty('--helper-delay', (-index * 1.15) + 's');
+    helper.style.setProperty('--helper-duration', duration + 's');
     elements.helperField.appendChild(helper);
   }
   while (elements.helperField.children.length > count) {
