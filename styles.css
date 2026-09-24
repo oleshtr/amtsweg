@@ -99,7 +99,7 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   flex: 0 0 48px;
   width: 48px;
   height: 48px;
-  display: none;
+  display: grid;
   place-items: center;
   border: 4px solid var(--ink);
   border-radius: 50%;
@@ -1007,7 +1007,7 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   top: 112px;
   width: 125px;
   height: 114px;
-  display: grid;
+  display: none;
   place-items: center;
   align-content: center;
   gap: 4px;
