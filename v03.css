@@ -28,7 +28,7 @@
   visibility: visible !important;
   opacity: 1 !important;
 }
-.world[data-stage="0"] > .surface > .flyer-stack {
+.world[data-stage="0"] > .v03-surface > .flyer-stack {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
