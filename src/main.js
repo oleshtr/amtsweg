@@ -12,11 +12,9 @@ const elements = {
   electionCost: $('[data-election-cost]'), ending: $('[data-ending]'),
   status: $('[data-status-copy]'), toast: $('[data-toast]'),
   reset: $('[data-action="reset"]'), supporterHud: $('[data-supporter-stat]'),
-  contactBuffer: $('[data-contact-buffer]'),
 };
 const integerFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
 const smallFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
-const outputFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 });
 const moneyFormat = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const format = value => (value < 100 ? smallFormat : integerFormat).format(value);
 const cashFormat = value => moneyFormat.format(value);
@@ -26,7 +24,6 @@ let lastSave = lastFrame;
 let previousStage = null;
 let lastCoin = 0;
 let lastRender = lastFrame;
-let reactionIndex = 0;
 let previousCheerTier = null;
 
 function loadState() {
@@ -64,19 +61,29 @@ function flashScene() {
 }
 
 function pulseStation(name, milestone) {
-  if (name === 'campaign') {
-    const point = $('.campaign-point');
-    point.classList.remove('campaign-point--level-pulse', 'campaign-point--milestone-pulse');
-    void point.offsetWidth;
-    point.classList.add(milestone ? 'campaign-point--milestone-pulse' : 'campaign-point--level-pulse');
-    setTimeout(() => point.classList.remove('campaign-point--level-pulse', 'campaign-point--milestone-pulse'), milestone ? 700 : 340);
-    return;
-  }
   const room = $('.room--' + (name === 'helper' ? 'helpers' : name));
   room.classList.remove('room--level-pulse', 'room--milestone-pulse');
   void room.offsetWidth;
   room.classList.add(milestone ? 'room--milestone-pulse' : 'room--level-pulse');
   setTimeout(() => room.classList.remove('room--level-pulse', 'room--milestone-pulse'), milestone ? 700 : 340);
+}
+
+function showGain(amount, source) {
+  const visual = Game.CONFIG.visual;
+  const layer = $('[data-resource-burst-layer]');
+  if (layer.querySelectorAll('.floating-gain').length < visual.maxFloatingTexts) {
+    const gain = document.createElement('span');
+    gain.className = 'floating-gain floating-gain--' + source;
+    gain.textContent = '+' + smallFormat.format(amount) + ' Unterstützer';
+    layer.appendChild(gain);
+    setTimeout(() => gain.remove(), visual.flyerAnimationMs + 350);
+  }
+  if (layer.querySelectorAll('.flyer-recipient').length < visual.maxRecipients) {
+    const recipient = document.createElement('span');
+    recipient.className = 'flyer-recipient flyer-recipient--' + source;
+    layer.appendChild(recipient);
+    setTimeout(() => recipient.remove(), visual.flyerAnimationMs + 100);
+  }
 }
 
 function flyerFeedback() {
@@ -94,14 +101,6 @@ function flyerFeedback() {
       { transform: 'rotate(0deg)' },
     ], { duration: visual.flyerAnimationMs, easing: 'steps(4, end)' });
   }
-  const passers = document.querySelectorAll('.passer');
-  if (passers.length && [...passers].reduce((count, passer) => count + passer.getAnimations().length, 0) < visual.maxPasserAnimations) {
-    const passer = passers[reactionIndex++ % passers.length];
-    passer.animate([
-      { filter: 'brightness(1)' }, { filter: 'brightness(1.6)', offset: 0.5 },
-      { filter: 'brightness(1)' },
-    ], { duration: visual.reactionMs, easing: 'steps(2, end)' });
-  }
   const layer = $('[data-resource-burst-layer]');
   if (layer.querySelectorAll('.flyer-particle').length < visual.maxFlyerParticles) {
     const particle = document.createElement('span');
@@ -110,10 +109,24 @@ function flyerFeedback() {
     layer.appendChild(particle);
     setTimeout(() => particle.remove(), visual.flyerAnimationMs + 80);
   }
-  const campaignControl = $('[data-upgrade="campaign"]');
-  campaignControl.classList.remove('campaign-control--contact');
-  void campaignControl.offsetWidth;
-  campaignControl.classList.add('campaign-control--contact');
+  showGain(Game.flyerOutput(), 'player');
+  elements.supporterHud.classList.remove('hud-stat--pulse');
+  void elements.supporterHud.offsetWidth;
+  elements.supporterHud.classList.add('hud-stat--pulse');
+}
+
+function helperFeedback(amount) {
+  const helper = $('.helper--one');
+  helper.classList.remove('helper--handoff');
+  void helper.offsetWidth;
+  helper.classList.add('helper--handoff');
+  if (state.standLevel) {
+    const stand = $('.info-stand');
+    stand.classList.remove('info-stand--working');
+    void stand.offsetWidth;
+    stand.classList.add('info-stand--working');
+  }
+  showGain(amount, 'helper');
 }
 
 function confetti() {
@@ -144,10 +157,17 @@ function renderStation(name, level, unlocked) {
   const upgrade = $('[data-upgrade="' + name + '"]');
   build.hidden = !unlocked || level > 0 || state.electionFinished;
   buy.disabled = !Game.canBuy(state, name);
-  $('[data-' + name + '-cost]').textContent = Game.stationCost(name, 0) + ' €';
+  $('[data-' + name + '-cost]').textContent = name === 'helper' ?
+    'AB ' + Game.CONFIG.helper.unlockSupporters + ' ★ · GRATIS' : Game.stationCost(name, 0) + ' €';
   upgrade.disabled = !Game.canBuy(state, name);
   $('[data-' + name + '-level]').textContent = level;
-  $('[data-' + name + '-upgrade-cost]').textContent = Game.stationCost(name, level);
+  if (name === 'helper') {
+    $('[data-helper-upgrade-label]').textContent = !Game.unlocks(state).cash ?
+      'KASSE AB ' + Game.CONFIG.cashUnlockSupporters + ' ★' :
+      '↑ ' + Game.stationCost(name, level) + ' €';
+  } else {
+    $('[data-' + name + '-upgrade-cost]').textContent = Game.stationCost(name, level);
+  }
 }
 
 function render() {
@@ -155,20 +175,12 @@ function render() {
   const stage = Game.worldStage(state);
   const bottleneck = Game.bottlenecks(state);
   elements.scene.dataset.stage = String(stage);
-  elements.scene.dataset.campaignTier = state.campaignLevel >= 20 ? '20' :
-    state.campaignLevel >= 10 ? '10' : state.campaignLevel >= 5 ? '5' :
-      state.campaignLevel >= 3 ? '3' : state.campaignLevel >= 2 ? '2' : '1';
   elements.scene.dataset.helperTier = state.helperLevel >= 20 ? '20' : state.helperLevel >= 10 ? '10' : state.helperLevel >= 5 ? '5' : '1';
   elements.scene.dataset.standTier = state.standLevel >= 20 ? '20' : state.standLevel >= 10 ? '10' : state.standLevel >= 5 ? '5' : '1';
   elements.scene.dataset.officeTier = state.officeLevel >= 20 ? '20' : state.officeLevel >= 10 ? '10' : state.officeLevel >= 5 ? '5' : '1';
-  elements.scene.classList.toggle('world--campaign-jam', bottleneck.campaign);
-  elements.scene.classList.toggle('world--stand-jam', bottleneck.stand);
   elements.scene.classList.toggle('world--office-jam', bottleneck.office);
-  elements.scene.dataset.queueTier = state.contacts >= 12 ? '3' :
-    state.contacts >= 6 ? '2' : state.contacts >= 1 ? '1' : '0';
   elements.scene.style.setProperty('--helper-route-duration',
-    Math.max(Game.CONFIG.helper.minVisualCycleSeconds,
-      Game.CONFIG.helper.visualContactsPerCycle / Math.max(Game.helperRate(state), 0.001)) + 's');
+    Math.max(1.1, 3 / Math.max(Game.helperRate(state), 0.001)) + 's');
   elements.supporters.textContent = format(state.supporters);
   elements.euros.textContent = cashFormat(state.euros);
   elements.supportRate.textContent = state.helperLevel ? '+' + format(Game.supporterRate(state) * 60) + '/min' : '';
@@ -176,30 +188,16 @@ function render() {
   elements.cashHud.hidden = !unlocked.cash;
   $('.game-hud').classList.toggle('game-hud--compact', !unlocked.cash);
   elements.flyer.disabled = state.electionFinished;
-  elements.flyer.querySelector('small').textContent = '+' + outputFormat.format(Game.flyerOutput(state)) + ' Kontakt · sofort';
-  const campaign = Game.CONFIG.campaign;
-  const campaignButton = $('[data-upgrade="campaign"]');
-  const nextCampaignLevel = state.campaignLevel + 1;
-  campaignButton.disabled = !Game.canBuy(state, 'campaign');
-  $('[data-campaign-level]').textContent = state.campaignLevel;
-  $('[data-campaign-output]').textContent = outputFormat.format(Game.campaignCapacity(state)) + ' Kontakte/s Verarbeitung';
-  elements.contactBuffer.textContent = Math.ceil(state.contacts) + ' warten';
-  $('[data-campaign-next]').textContent = nextCampaignLevel <= campaign.freeThroughLevel ?
-    '↑ KOSTENLOS · AB ' + campaign.freeSupporters[nextCampaignLevel] + ' ★' :
-    !unlocked.cash ? '↑ KASSE AB ' + Game.CONFIG.cashUnlockSupporters + ' ★' :
-      '↑ ' + cashFormat(Game.stationCost('campaign', state.campaignLevel)) + ' €';
+  elements.flyer.querySelector('small').textContent = '+1 Unterstützer · sofort';
   renderStation('helper', state.helperLevel, unlocked.helper);
-  const helperShortfall = Math.max(0, Game.stationCost('helper', 0) - state.euros);
-  $('[data-helper-progress]').style.width = Math.min(100, state.euros / Game.stationCost('helper', 0) * 100) + '%';
-  $('[data-helper-shortfall]').textContent = helperShortfall > 0 ?
-    'Noch ' + cashFormat(helperShortfall) + ' €' : 'Bereit!';
   renderStation('stand', state.standLevel, unlocked.stand);
   renderStation('office', state.officeLevel, unlocked.office);
-  $('[data-helper-rate]').textContent = format(Game.helperRate(state) * 60) + ' Kontakte/min';
-  $('[data-stand-rate]').textContent = format(Game.standCapacity(state) * 60) + ' Kapazität/min';
+  $('[data-helper-rate]').textContent = format(Game.supporterRate(state) * 60) + ' Unterstützer/min';
+  $('[data-stand-rate]').textContent = '×' + smallFormat.format(Game.supporterConversionMultiplier(state)) + ' Helfer-Ertrag';
   $('[data-office-rate]').textContent = cashFormat(Game.euroRate(state)) + ' €/s';
   $('[data-helper-count]').textContent = state.helperLevel;
   elements.progress.hidden = stage < 5;
+  $('[data-control-deck]').classList.toggle('control-deck--election', stage >= 5);
   const percent = Math.min(100, Math.floor(100 * Math.min(
     state.supporters / Game.CONFIG.election.targetSupporters,
     state.euros / Game.CONFIG.election.entryCost,
@@ -214,17 +212,12 @@ function render() {
   elements.ending.hidden = !state.electionFinished;
   elements.status.textContent = state.electionFinished ? 'Kommunalwahl geschafft!' :
     stage >= 5 ? 'NÄCHSTES ZIEL: KOMMUNALWAHL' :
-    bottleneck.office ? 'Im Ortsbüro stauen sich Spenden.' :
-    bottleneck.campaign ? 'Am Kampagnenplatz warten Kontakte auf Verarbeitung.' :
-    bottleneck.stand ? 'Passanten warten am Infostand.' :
+    bottleneck.office ? 'Das Ortsbüro erreicht seine Spendenkapazität.' :
     stage >= 4 ? 'Das Ortsbüro organisiert die Spenden.' :
-    stage >= 3 ? 'Der Infostand verarbeitet Kontakte.' :
-    stage >= 2 ? 'Dein Helferteam verteilt Flyer.' :
-    stage >= 1 && !state.helperLevel && !unlocked.helper ?
-      'Helfer ab Kampagnenplatz LV ' + Game.CONFIG.helper.unlockCampaignLevel +
-      ' und ' + Game.CONFIG.helper.unlockSupporters + ' Unterstützern.' :
-    stage >= 1 && !state.helperLevel ? 'Der erste Helfer wartet auf die Wahlkampfkasse.' :
-      'Baue deinen Kampagnenplatz aus.';
+    stage >= 3 ? 'Der Infostand verstärkt die Helferarbeit.' :
+    stage >= 2 ? 'Unterstützer spenden für deinen Wahlkampf.' :
+    stage >= 1 ? 'Dein Helfer verteilt automatisch Flyer.' :
+      'Verteile Flyer. Ab 30 Unterstützern kannst du einen Helfer anwerben.';
   if (previousStage !== null && stage > previousStage) {
     flashScene();
     if (stage === 6) confetti();
@@ -243,7 +236,7 @@ function purchase(name) {
     render();
     if (before > 0) pulseStation(name, Game.CONFIG[name].milestones.includes(state[name + 'Level']));
     saveState();
-    toast((name === 'campaign' ? 'Kampagnenplatz' : name === 'helper' ? 'Helferteam' : name === 'stand' ? 'Infostand' : 'Ortsbüro') +
+    toast((name === 'helper' ? 'Helferteam' : name === 'stand' ? 'Infostand' : 'Ortsbüro') +
       ' · Level ' + state[name + 'Level']);
   }
 }
@@ -254,8 +247,8 @@ elements.flyer.addEventListener('click', () => {
   render();
   flyerFeedback();
 });
-for (const name of ['campaign', 'helper', 'stand', 'office']) {
-  if (name !== 'campaign') $('[data-action="' + name + '"]').addEventListener('click', () => purchase(name));
+for (const name of ['helper', 'stand', 'office']) {
+  $('[data-action="' + name + '"]').addEventListener('click', () => purchase(name));
   $('[data-upgrade="' + name + '"]').addEventListener('click', () => purchase(name));
 }
 elements.election.addEventListener('click', () => {
@@ -281,15 +274,16 @@ function frame(now) {
   const delta = Math.min(1, Math.max(0, (now - lastFrame) / 1000));
   lastFrame = now;
   const beforeSupporters = state.supporters;
-  const beforeContacts = state.contacts;
   const beforeEuros = state.euros;
   if (!state.electionFinished) {
     state = Game.tick(state, delta);
+    if (state.helperLevel && state.supporters > beforeSupporters) {
+      helperFeedback(state.supporters - beforeSupporters);
+    }
     if (now - lastRender >= Game.CONFIG.tickMs &&
-      (state.supporters !== beforeSupporters || state.contacts !== beforeContacts ||
-        state.euros !== beforeEuros)) render();
+      (state.supporters !== beforeSupporters || state.euros !== beforeEuros)) render();
   }
-  if (state.fundraisingBuffer > 0 && Game.euroRate(state) &&
+  if (Game.euroRate(state) &&
       now - lastCoin > Game.CONFIG.visual.coinIntervalMs) {
     elements.scene.classList.remove('world--coin');
     void elements.scene.offsetWidth;

@@ -1,10 +1,9 @@
-// Active replay for the buffered production chain.
+// Active replay: clicking until the first helper, then short active bursts.
 const Game = require('../src/game.js');
 const stepMs = 100;
 
 function simulate(clicksPerSecond) {
   const goals = {};
-  const earlyEvents = [];
   let state = Game.createInitialState(1000);
   let now = 1000;
   let nextClickAt = now;
@@ -13,7 +12,6 @@ function simulate(clicksPerSecond) {
   const mark = name => {
     if (!(name in goals)) goals[name] = Math.round((now - 1000) / 6000) / 10;
   };
-  const early = name => earlyEvents.push({ event: name, seconds: Math.round((now - 1000) / 1000) });
 
   for (; now < 1000 + 120 * 60 * 1000; now += stepMs) {
     while (now >= nextClickAt && !state.electionFinished) {
@@ -26,15 +24,9 @@ function simulate(clicksPerSecond) {
 
     state = Game.tick(state, stepMs / 1000, now);
 
-    if (state.campaignLevel < 18 && Game.canBuy(state, 'campaign') && !state.helperLevel) {
-      state = Game.buyStation(state, 'campaign', now);
-      if (state.campaignLevel === 2) { mark('campaign2'); early('campaign2'); }
-      if (state.campaignLevel === 5) { mark('campaign5'); early('campaign5'); }
-      if (state.campaignLevel === 10) { mark('campaign10'); early('campaign10'); }
-    }
-    if (Game.unlocks(state).cash && !('cash' in goals)) { mark('cash'); early('cash'); }
+    if (Game.unlocks(state).cash) mark('cash');
     if (!state.helperLevel && Game.canBuy(state, 'helper')) {
-      state = Game.buyStation(state, 'helper', now); mark('helper'); early('helper');
+      state = Game.buyStation(state, 'helper', now); mark('helper');
     }
     if (state.helperLevel && state.helperLevel < 5 && Game.canBuy(state, 'helper')) {
       state = Game.buyStation(state, 'helper', now);
@@ -59,14 +51,10 @@ function simulate(clicksPerSecond) {
     }
   }
 
-  const gaps = earlyEvents.slice(1).map((event, index) => event.seconds - earlyEvents[index].seconds);
   return {
-    clicksPerSecond, clicks, minutes: goals, earlyEvents,
-    longestEarlyGapSeconds: Math.max(earlyEvents[0]?.seconds || 0, ...gaps, 0),
+    clicksPerSecond, clicks, minutes: goals,
     final: {
-      contacts: Math.round(state.contacts), supporters: Math.round(state.supporters),
-      fundraisingBuffer: Math.round(state.fundraisingBuffer * 100) / 100,
-      euros: Math.round(state.euros), campaignLevel: state.campaignLevel,
+      supporters: Math.round(state.supporters), euros: Math.round(state.euros),
       helperLevel: state.helperLevel, standLevel: state.standLevel, officeLevel: state.officeLevel,
     },
   };

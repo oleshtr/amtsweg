@@ -63,16 +63,6 @@
               <div class="bench"></div>
               <div class="mailbox">✉</div>
             </div>
-            <div class="campaign-point" aria-hidden="true">
-              <div class="campaign-queue" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-              <div class="campaign-point__banner">FÜR UNSEREN ORT</div>
-              <div class="campaign-point__sign">WIR HÖREN ZU</div>
-              <div class="campaign-point__table"><span></span><span></span></div>
-              <div class="campaign-point__box">FLYER</div>
-              <div class="campaign-point__stack"></div>
-              <div class="campaign-point__materials"></div>
-              <div class="campaign-point__lamp"></div>
-            </div>
             <div class="campaign-house">
               <div class="building-roof"></div>
               <div class="campaign-house__sign">WAHLKAMPF</div>
@@ -115,18 +105,6 @@
               <div class="hand-flyer">!</div>
             </div>
 
-            <div class="passer passer--one actor actor--small" aria-hidden="true">
-              <div class="actor__hair"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div>
-            </div>
-            <div class="passer passer--two actor actor--small" aria-hidden="true">
-              <div class="actor__hair"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div>
-            </div>
-            <div class="passer passer--three actor actor--small" aria-hidden="true">
-              <div class="actor__hair"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div>
-            </div>
-            <div class="passer passer--four actor actor--small" aria-hidden="true">
-              <div class="actor__hair"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div>
-            </div>
 
             <div class="helper helper--one actor actor--helper" aria-hidden="true">
               <div class="actor__cap"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div><div class="helper__flyers"></div>
@@ -141,11 +119,8 @@
               <div class="info-stand__box">FLYER</div>
               <div class="info-stand__flag"></div>
             </div>
-            <div class="stand-queue" aria-hidden="true"><i></i><i></i><i></i></div>
             <div class="station-build station-build--helper" data-build="helper" hidden>
-              <button data-action="helper" type="button">HELFER HOLEN <strong data-helper-cost></strong></button>
-              <div class="build-progress"><span data-helper-progress></span></div>
-              <small data-helper-shortfall></small>
+              <button data-action="helper" type="button">HELFER ANWERBEN <strong data-helper-cost></strong></button>
             </div>
             <div class="station-build station-build--stand" data-build="stand" hidden>
               <button data-action="stand" type="button">INFOSTAND BAUEN <strong data-stand-cost></strong></button>
@@ -180,16 +155,13 @@
                 <span class="paper paper--one"></span>
                 <span class="paper paper--two"></span>
               </div>
-              <div class="office-worker office-worker--helper">
-                <span class="worker__head"></span><span class="worker__body"></span>
-              </div>
               <div class="room-level">
                 <small>LEVEL</small>
                 <strong data-helper-count>0</strong>
               </div>
               <div class="station-detail station-detail--extra-worker" aria-hidden="true">✦</div>
               <div class="station-detail station-detail--materials" aria-hidden="true">▰ ▰ ▰</div>
-              <button class="station-control" data-upgrade="helper" type="button"><span>HELFERTEAM · LV <b data-helper-level>1</b></span><small data-helper-rate></small><strong>↑ <span data-helper-upgrade-cost></span> €</strong></button>
+              <button class="station-control" data-upgrade="helper" type="button"><span>HELFERTEAM · LV <b data-helper-level>1</b></span><small data-helper-rate></small><strong data-helper-upgrade-label></strong></button>
             </div>
 
             <div class="room room--stand">
@@ -234,7 +206,7 @@
               <span class="game-button__icon">▰</span>
               <span>
                 <strong>FLYER VERTEILEN</strong>
-                <small>+1 Kontakt</small>
+                <small>+1 Unterstützer · sofort</small>
               </span>
             </button>
 
@@ -251,12 +223,6 @@
             <small data-election-mini>Noch 350 Unterstützer bis zum Kapitelziel.</small>
             <button class="election-action" data-action="election" type="button">KOMMUNALWAHL ANTRETEN · <span data-election-cost></span> €</button>
           </div>
-          <button class="station-control campaign-control" data-upgrade="campaign" type="button">
-            <span>KAMPAGNENPLATZ · LV <b data-campaign-level>1</b></span>
-            <small data-campaign-output>2 Kontakte/s Verarbeitung</small>
-            <small class="campaign-control__queue" data-contact-buffer>0 warten</small>
-            <strong data-campaign-next>↑ AB 30 ★</strong>
-          </button>
         </section>
 
         <section class="ending" data-ending hidden>

@@ -26,10 +26,9 @@ async function run() {
     headless: true, args: ['--no-sandbox'],
   });
   const errors = [];
-  const viewports = [[1440, 900], [900, 800], [390, 844]];
   const results = [];
   try {
-    for (const [width, height] of viewports) {
+    for (const [width, height] of [[1440, 900], [900, 800], [390, 844]]) {
       const page = await browser.newPage({ viewport: { width, height } });
       page.on('pageerror', error => errors.push(width + ' page: ' + error.message));
       page.on('console', message => { if (message.type() === 'error') errors.push(width + ' console: ' + message.text()); });
@@ -37,138 +36,107 @@ async function run() {
       await page.evaluate(() => localStorage.clear());
       await page.reload();
       const capture = async phase => {
-        await page.waitForTimeout(600);
-        await page.screenshot({
-          path: path.join(os.tmpdir(), 'amtsweg-polish-' + width + '-' + phase + '.png'),
-          fullPage: true,
-        });
+        await page.waitForTimeout(350);
+        await page.screenshot({ path: path.join(os.tmpdir(), 'amtsweg-simple-' + width + '-' + phase + '.png'), fullPage: true });
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), false);
       };
-      assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '0');
-      assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
-      assert.equal(await page.locator('[data-action="flyer"]').isVisible(), true);
-      assert.equal(await page.locator('[data-action="reset"]').isVisible(), true);
-      assert.equal(await page.locator('[data-campaign-level]').textContent(), '1');
-      assert.equal(await page.locator('[data-action="donate"]').count(), 0);
-      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), false);
-      for (const selector of ['.room--helpers', '.info-stand', '.campaign-house', '.cityhall', '[data-build="helper"]']) {
-        assert.equal(await page.locator(selector).isVisible(), false, selector + ' visible at start');
-      }
-      await capture('fresh');
-      const clickAudit = await page.evaluate(() => {
-        const button = document.querySelector('[data-action="flyer"]');
-        for (let i = 0; i < 10; i += 1) button.click();
-        const ten = state.supporters;
-        for (let i = 0; i < 100; i += 1) button.click();
-        return { ten, total: state.supporters, disabled: button.disabled,
-          particles: document.querySelectorAll('.flyer-particle').length,
-          armAnimations: document.querySelector('[data-candidate] .actor__arm').getAnimations().length,
-          passerAnimations: [...document.querySelectorAll('.passer')].reduce((sum, passer) => sum + passer.getAnimations().length, 0) };
-      });
-      assert.equal(clickAudit.ten, 10);
-      assert.equal(clickAudit.total, 110);
-      assert.equal(clickAudit.disabled, false);
-      assert.equal(clickAudit.particles, 12);
-      assert.ok(clickAudit.armAnimations <= 4);
-      assert.ok(clickAudit.passerAnimations <= 6);
-      await page.waitForTimeout(700);
-      assert.equal(await page.locator('.flyer-particle').count(), 0);
-      page.once('dialog', dialog => dialog.accept());
-      await page.locator('[data-action="reset"]').click();
       const spam = count => page.evaluate(n => {
         const button = document.querySelector('[data-action="flyer"]');
         for (let i = 0; i < n; i += 1) button.click();
       }, count);
+
+      assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '0');
+      assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
+      assert.equal(await page.locator('[data-action="reset"]').isVisible(), true);
+      assert.equal(await page.locator('.passer, .campaign-point, [data-upgrade="campaign"]').count(), 0);
+      for (const selector of ['.helper--one', '.room--helpers', '.info-stand', '.campaign-house', '.cityhall', '[data-build="helper"]']) {
+        assert.equal(await page.locator(selector).isVisible(), false, selector + ' visible at start');
+      }
+      await capture('fresh');
+
+      const audit = await page.evaluate(() => {
+        const button = document.querySelector('[data-action="flyer"]');
+        for (let i = 0; i < 10; i += 1) button.click();
+        const ten = state.supporters;
+        for (let i = 0; i < 100; i += 1) button.click();
+        return {
+          ten, total: state.supporters, disabled: button.disabled,
+          particles: document.querySelectorAll('.flyer-particle').length,
+          floating: document.querySelectorAll('.floating-gain').length,
+          recipients: document.querySelectorAll('.flyer-recipient').length,
+          armAnimations: document.querySelector('[data-candidate] .actor__arm').getAnimations().length,
+        };
+      });
+      assert.equal(audit.ten, 10);
+      assert.equal(audit.total, 110);
+      assert.equal(audit.disabled, false);
+      assert.equal(audit.particles, 12);
+      assert.ok(audit.floating > 0 && audit.floating <= 8);
+      assert.ok(audit.recipients > 0 && audit.recipients <= 4);
+      assert.ok(audit.armAnimations <= 4);
+      assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
+      await page.waitForTimeout(900);
+      assert.equal(await page.locator('.flyer-particle, .floating-gain, .flyer-recipient').count(), 0);
+
+      page.once('dialog', dialog => dialog.accept());
+      await page.locator('[data-action="reset"]').click();
       await spam(30);
-      await page.locator('[data-upgrade="campaign"]').click();
-      assert.equal(await page.locator('[data-campaign-level]').textContent(), '2');
-      await capture('campaign2');
-      await spam(27);
-      await page.locator('[data-upgrade="campaign"]').click();
-      assert.equal(await page.locator('[data-campaign-level]').textContent(), '3');
-      await capture('campaign3');
-      await spam(33);
-      assert.equal(await page.locator('[data-euro-stat]').isVisible(), true);
-      await capture('cash');
-      await page.evaluate(() => { state.supporters = Game.CONFIG.helper.unlockSupporters; state.euros = 10000; render(); });
-      assert.equal(await page.locator('.crowd-reaction').evaluate(element => element.classList.contains('crowd-reaction--active')), true);
-      await page.locator('[data-upgrade="campaign"]').click();
-      await page.locator('[data-upgrade="campaign"]').click();
-      assert.equal(await page.locator('[data-campaign-level]').textContent(), '5');
-      await capture('campaign5');
-      await page.locator('[data-upgrade="campaign"]').click();
-      assert.equal(await page.locator('[data-campaign-level]').textContent(), '6');
+      assert.equal(await page.evaluate(() => state.supporters), 30);
+      assert.equal(await page.locator('[data-build="helper"]').isVisible(), true);
       await page.locator('[data-action="helper"]').click();
+      assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '1');
+      assert.equal(await page.locator('.helper--one').isVisible(), true);
+      assert.equal(await page.locator('.room--helpers').isVisible(), true);
+      assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
+      const beforeAuto = await page.evaluate(() => state.supporters);
+      await page.waitForTimeout(1200);
+      assert.ok(await page.evaluate(() => state.supporters) > beforeAuto);
       await capture('helper');
+
+      await spam(45);
+      assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '2');
+      assert.equal(await page.locator('[data-euro-stat]').isVisible(), true);
+      assert.equal(await page.locator('.donation-point').isVisible(), true);
+      await capture('cash');
+      await page.waitForTimeout(400);
+      await page.evaluate(() => { state.euros = 10000; render(); });
       const helperCycleAtOne = await page.locator('.helper--one').evaluate(element => parseFloat(getComputedStyle(element).animationDuration));
-      await page.waitForTimeout(150);
-      await page.locator('[data-upgrade="helper"]').click();
-      assert.equal(await page.locator('[data-scene]').evaluate(element => element.classList.contains('world--stage-reveal')), false);
-      assert.equal(await page.locator('.room--helpers').evaluate(element => element.classList.contains('room--level-pulse')), true);
-      for (let i = 0; i < 3; i += 1) await page.locator('[data-upgrade="helper"]').click();
+      for (let i = 0; i < 4; i += 1) await page.locator('[data-upgrade="helper"]').click();
       const helperCycleAtFive = await page.locator('.helper--one').evaluate(element => parseFloat(getComputedStyle(element).animationDuration));
       assert.ok(helperCycleAtFive < helperCycleAtOne);
-      assert.equal(await page.locator('.room--helpers').evaluate(element => element.classList.contains('room--milestone-pulse')), true);
+      assert.equal(await page.locator('[data-scene]').evaluate(element => element.classList.contains('world--stage-reveal')), false);
       await page.evaluate(() => { state.supporters = Game.CONFIG.stand.unlockSupporters; render(); });
       await page.locator('[data-action="stand"]').click();
+      assert.equal(await page.locator('.info-stand').isVisible(), true);
       await capture('stand');
       for (let i = 0; i < 9; i += 1) await page.locator('[data-upgrade="stand"]').click();
       await page.evaluate(() => { state.supporters = Game.CONFIG.office.unlockSupporters; render(); });
       await page.locator('[data-action="office"]').click();
+      assert.equal(await page.locator('.campaign-house').isVisible(), true);
       await capture('office');
       for (let i = 0; i < 4; i += 1) await page.locator('[data-upgrade="office"]').click();
       await page.evaluate(() => { state.supporters = Game.CONFIG.election.revealSupporters; render(); saveState(); });
       assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '5');
-      assert.equal(await page.locator('[data-chapter-progress]').isVisible(), true);
+      assert.equal(await page.locator('.cityhall').isVisible(), true);
       await capture('election');
       await page.reload();
       assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '5');
-      assert.equal(await page.locator('[data-campaign-level]').textContent(), '6');
-      await page.waitForTimeout(550);
-      assert.equal(await page.locator('[data-scene]').evaluate(element => element.classList.contains('world--stage-reveal')), false);
-      const visibleMilestones = await page.evaluate(() => {
-        state.helperLevel = 10;
-        state.officeLevel = 10;
-        render();
-        return {
-          secondHelper: getComputedStyle(document.querySelector('.helper--two')).display !== 'none',
-          secondDesk: getComputedStyle(document.querySelector('.station-detail--desk')).display !== 'none',
-          secondWorker: getComputedStyle(document.querySelector('.station-detail--second-worker')).display !== 'none',
-        };
-      });
-      assert.deepEqual(visibleMilestones, { secondHelper: true, secondDesk: true, secondWorker: true });
-      await page.evaluate(() => { state.helperLevel = 5; state.officeLevel = 5; render(); });
-      const layout = await page.evaluate(() => ({
-        overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-        flyer: document.querySelector('[data-action="flyer"]').getBoundingClientRect().width > 0,
-        helper: document.querySelector('[data-upgrade="helper"]').getBoundingClientRect().width > 0,
-        stand: document.querySelector('[data-upgrade="stand"]').getBoundingClientRect().width > 0,
-        office: document.querySelector('[data-upgrade="office"]').getBoundingClientRect().width > 0,
-      }));
-      assert.equal(layout.overflow, false);
-      assert.ok(layout.flyer && layout.helper && layout.stand && layout.office);
-      await page.evaluate(() => {
-        state.supporters = Game.CONFIG.election.targetSupporters;
-        state.euros = Game.CONFIG.election.entryCost;
-        render();
-      });
+      await page.evaluate(() => { state.supporters = Game.CONFIG.election.targetSupporters; state.euros = Game.CONFIG.election.entryCost; render(); });
       await page.locator('[data-action="election"]').click();
-      assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '6');
       assert.equal(await page.locator('[data-ending]').isVisible(), true);
       page.once('dialog', dialog => dialog.accept());
       await page.locator('[data-action="reset"]').click();
       assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '0');
+
       await page.addInitScript(() => {
         localStorage.removeItem('amtsweg-v0.2-save');
-        localStorage.setItem('amtsweg-v0.1-save', JSON.stringify({
-          supporters: 50, euros: 20, helpers: 2, standOwned: true, officeOwned: true,
-        }));
+        localStorage.setItem('amtsweg-v0.1-save', JSON.stringify({ supporters: 50, contacts: 17, euros: 20, helpers: 2 }));
       });
       await page.reload();
-      assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '2');
+      assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '1');
+      assert.equal(await page.evaluate(() => state.supporters), 67);
       assert.equal(await page.evaluate(() => state.helperLevel), 2);
-      page.once('dialog', dialog => dialog.accept());
-      await page.locator('[data-action="reset"]').click();
-      results.push({ viewport: width + '×' + height, layout, fresh: true, progression: true, reload: true, victory: true, reset: true, migration: true });
+      results.push({ viewport: width + '×' + height, rapidClicks: audit.total, helperCycle: true, progression: true, reload: true, reset: true, migration: true });
       await page.close();
     }
     assert.deepEqual(errors, []);
