@@ -49,6 +49,7 @@ async function run() {
       assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
       assert.equal(await page.locator('[data-action="reset"]').isVisible(), true);
       assert.equal(await page.locator('.passer, .campaign-point, [data-upgrade="campaign"]').count(), 0);
+      assert.equal(await page.locator('.shaft, .soil-pattern, .locked-tunnel').count(), 0);
       for (const selector of ['.field-helper', '.room--helpers', '.info-stand', '.campaign-house', '.cityhall', '[data-build="helper"]']) {
         assert.equal(await page.locator(selector).isVisible(), false, selector + ' visible at start');
       }
@@ -90,8 +91,12 @@ async function run() {
       assert.equal(await page.locator('.room--helpers').isVisible(), true);
       assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
       const beforeAuto = await page.evaluate(() => state.supporters);
-      await page.waitForTimeout(1200);
+      const helperStartX = await page.locator('.field-helper').first().evaluate(element => element.getBoundingClientRect().left);
+      await page.waitForTimeout(1400);
       assert.ok(await page.evaluate(() => state.supporters) > beforeAuto);
+      const helperLaterX = await page.locator('.field-helper').first().evaluate(element => element.getBoundingClientRect().left);
+      assert.ok(helperLaterX > helperStartX, 'helper must travel from flyer pickup toward the right');
+      assert.ok(await page.locator('.operations__header').isVisible());
       await capture('helper');
 
       await spam(45);
