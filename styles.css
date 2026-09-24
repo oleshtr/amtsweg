@@ -99,7 +99,7 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   flex: 0 0 48px;
   width: 48px;
   height: 48px;
-  display: grid;
+  display: none;
   place-items: center;
   border: 4px solid var(--ink);
   border-radius: 50%;
@@ -787,8 +787,10 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   border: 5px solid var(--ink);
   background: #9db2c6;
   box-shadow: inset 0 0 0 6px #6f8297;
-  opacity: .28;
+  opacity: 0;
+  visibility: hidden;
   filter: grayscale(.7);
+  transform: translateY(12px);
   transition: opacity .25s steps(3,end), filter .25s steps(3,end), transform .25s steps(3,end);
 }
 
@@ -824,7 +826,9 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 .scene--office .room--stand,
 .scene--office .room--office {
   opacity: 1;
+  visibility: visible;
   filter: none;
+  transform: translateY(0);
   background: #c9d9e3;
 }
 
@@ -1307,6 +1311,8 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   transition: .18s ease;
 }
 .toast--visible { transform: translate(-50%, 0); opacity: 1; }
+
+.scene--finished .locked-tunnel { display: grid; }
 
 .scene--finished .cityhall {
   animation: cityhallVictory .7s steps(4,end) infinite alternate;
