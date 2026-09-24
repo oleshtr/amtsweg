@@ -13,7 +13,7 @@
     offline: Object.freeze({ maxSeconds: 2 * 60 * 60, minSeconds: 5 }),
     manual: Object.freeze({
       supportersPerAction: 1,
-      cooldownMs: 1000,
+      cooldownMs: 0,
     }),
     donation: Object.freeze({
       unlockSupporters: 30,
@@ -203,12 +203,12 @@
     return CONFIG.manual.supportersPerAction * careerMultiplier(state);
   }
 
-  function nextManualInMs(state, now = Date.now()) {
-    return Math.max(0, CONFIG.manual.cooldownMs - Math.max(0, now - nonnegative(state.lastManualAt)));
+  function nextManualInMs() {
+    return 0;
   }
 
-  function canDistributeFlyer(state, now = Date.now()) {
-    return !state.electionFinished && nextManualInMs(state, now) <= 0;
+  function canDistributeFlyer(state) {
+    return !state.electionFinished;
   }
 
   function helperCycleSeconds(state) {
