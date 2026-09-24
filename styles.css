@@ -2062,3 +2062,51 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   20%,70% { opacity: 1; transform: translateY(-6px) scale(1); }
   100% { opacity: 0; transform: translateY(-30px) scale(1); }
 }
+
+
+/* Visible helper units: one street actor per purchased helper level. */
+.helper-field {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+  overflow: hidden;
+}
+.field-helper {
+  position: absolute;
+  bottom: 69px;
+  width: 42px;
+  height: 82px;
+  transform-origin: bottom center;
+  animation: fieldHelperRoute var(--helper-duration, 7s) linear infinite;
+  animation-delay: var(--helper-delay, 0s);
+}
+.field-helper .actor__body { background: var(--yellow); }
+.field-helper:nth-child(2n) .actor__body { background: #f29d38; }
+.field-helper:nth-child(3n) .actor__body { background: #66b86c; }
+.field-helper:nth-child(4n) .actor__body { background: #7a67b5; }
+.field-helper:nth-child(5n) .actor__body { background: #53a8a0; }
+.field-helper:nth-child(2n) .actor__cap { background: #4a91d2; }
+.field-helper:nth-child(3n) .actor__cap { background: #e84d45; }
+.field-helper:nth-child(4n) .actor__cap { background: #f3b747; }
+.field-helper:nth-child(5n) .actor__cap { background: #8bcf82; }
+
+.field-helper--handoff .helper__flyers {
+  animation: helperGive .28s steps(3, end) !important;
+}
+.field-helper--handoff {
+  filter: brightness(1.18);
+}
+
+@keyframes fieldHelperRoute {
+  0%   { transform: translateX(0) translateY(0) scale(var(--helper-scale, .82)); }
+  22%  { transform: translateX(var(--helper-distance-a, 45px)) translateY(-2px) scale(var(--helper-scale, .82)); }
+  48%  { transform: translateX(var(--helper-distance-b, 90px)) translateY(0) scale(var(--helper-scale, .82)); }
+  50%  { transform: translateX(var(--helper-distance-b, 90px)) scale(calc(var(--helper-scale, .82) * -1), var(--helper-scale, .82)); }
+  75%  { transform: translateX(var(--helper-distance-a, 45px)) translateY(-2px) scale(calc(var(--helper-scale, .82) * -1), var(--helper-scale, .82)); }
+  100% { transform: translateX(0) scale(calc(var(--helper-scale, .82) * -1), var(--helper-scale, .82)); }
+}
+
+@media (max-width: 650px) {
+  .field-helper { bottom: 65px; }
+}
