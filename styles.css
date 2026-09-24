@@ -2102,9 +2102,9 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   0%   { transform: translateX(0) translateY(0) scale(var(--helper-scale, .82)); }
   22%  { transform: translateX(var(--helper-distance-a, 45px)) translateY(-2px) scale(var(--helper-scale, .82)); }
   48%  { transform: translateX(var(--helper-distance-b, 90px)) translateY(0) scale(var(--helper-scale, .82)); }
-  50%  { transform: translateX(var(--helper-distance-b, 90px)) scale(calc(var(--helper-scale, .82) * -1), var(--helper-scale, .82)); }
-  75%  { transform: translateX(var(--helper-distance-a, 45px)) translateY(-2px) scale(calc(var(--helper-scale, .82) * -1), var(--helper-scale, .82)); }
-  100% { transform: translateX(0) scale(calc(var(--helper-scale, .82) * -1), var(--helper-scale, .82)); }
+  50%  { transform: translateX(var(--helper-distance-b, 90px)) scaleX(-1) scale(var(--helper-scale, .82)); }
+  75%  { transform: translateX(var(--helper-distance-a, 45px)) translateY(-2px) scaleX(-1) scale(var(--helper-scale, .82)); }
+  100% { transform: translateX(0) scaleX(-1) scale(var(--helper-scale, .82)); }
 }
 
 @media (max-width: 650px) {
