@@ -2573,3 +2573,432 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   .world[data-stage="5"],
   .world[data-stage="6"] { height: 655px; }
 }
+
+
+/* V0.3.2 — helpers staff the campaign point; passers carry the visible production flow. */
+.passer-field {
+  position: absolute;
+  inset: 0;
+  z-index: 13;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.street-passer {
+  position: absolute;
+  left: -72px;
+  bottom: 68px;
+  width: 42px;
+  height: 82px;
+  transform-origin: bottom center;
+  opacity: 1;
+  filter: drop-shadow(2px 3px 0 rgba(38,59,82,.15));
+}
+
+.street-passer--street {
+  animation: passerStreetJourney var(--passer-duration, 6.4s) linear forwards;
+}
+
+.street-passer--stand {
+  animation: passerStandJourney var(--passer-duration, 6.8s) linear forwards;
+}
+
+.street-passer__person {
+  position: absolute;
+  inset: 0;
+  animation: passerWalkBob .38s steps(2,end) infinite;
+}
+
+.street-passer__head {
+  position: absolute;
+  left: 10px;
+  top: 11px;
+  width: 23px;
+  height: 23px;
+  border: 3px solid var(--ink);
+  background: var(--passer-skin, #efbd89);
+  box-shadow: inset 0 -4px rgba(150,90,60,.18);
+}
+
+.street-passer__head::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  width: 3px;
+  height: 3px;
+  background: var(--ink);
+  box-shadow: 9px 0 0 var(--ink);
+}
+
+.street-passer__hair {
+  position: absolute;
+  left: 8px;
+  top: 5px;
+  width: 28px;
+  height: 11px;
+  border: 3px solid var(--ink);
+  background: var(--passer-hair, #654735);
+  z-index: 2;
+}
+
+.street-passer__torso {
+  position: absolute;
+  left: 7px;
+  top: 34px;
+  width: 29px;
+  height: 27px;
+  border: 3px solid var(--ink);
+  background: var(--passer-shirt, #6ca6c9);
+}
+
+.street-passer__torso::before,
+.street-passer__torso::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  width: 7px;
+  height: 19px;
+  border: 3px solid var(--ink);
+  background: var(--passer-skin, #efbd89);
+  transform-origin: top center;
+}
+
+.street-passer__torso::before {
+  left: -9px;
+  animation: passerArmA .38s steps(2,end) infinite;
+}
+
+.street-passer__torso::after {
+  right: -9px;
+  animation: passerArmB .38s steps(2,end) infinite;
+}
+
+.street-passer__legs {
+  position: absolute;
+  left: 12px;
+  top: 60px;
+  width: 7px;
+  height: 20px;
+  background: #263b52;
+  transform-origin: top center;
+  animation: passerLegA .38s steps(2,end) infinite;
+}
+
+.street-passer__legs::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 0;
+  width: 7px;
+  height: 20px;
+  background: #263b52;
+  transform-origin: top center;
+  animation: passerLegB .38s steps(2,end) infinite;
+}
+
+.street-passer__flyer {
+  position: absolute;
+  right: -8px;
+  top: 39px;
+  width: 13px;
+  height: 18px;
+  border: 2px solid var(--ink);
+  background: #fff9e3;
+  color: var(--red);
+  font-size: 8px;
+  font-weight: 900;
+  text-align: center;
+  line-height: 14px;
+  opacity: 0;
+}
+
+.street-passer--street .street-passer__flyer {
+  animation: passerStreetFlyer var(--passer-duration, 6.4s) linear forwards;
+}
+
+.street-passer--stand .street-passer__flyer {
+  animation: passerStandFlyer var(--passer-duration, 6.8s) linear forwards;
+}
+
+.street-passer__gain {
+  position: absolute;
+  left: 50%;
+  top: -22px;
+  transform: translateX(-50%);
+  padding: 3px 5px;
+  border: 2px solid var(--ink);
+  background: #fff3a5;
+  color: var(--ink);
+  font-size: 7px;
+  font-weight: 900;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+.street-passer--street .street-passer__gain {
+  animation: passerStreetGain var(--passer-duration, 6.4s) linear forwards;
+}
+
+.street-passer--stand .street-passer__gain {
+  animation: passerStandGain var(--passer-duration, 6.8s) linear forwards;
+}
+
+/* Every helper remains visible, but now as staff instead of random walkers. */
+.helper-field {
+  z-index: 12;
+  overflow: visible;
+}
+
+.field-helper {
+  animation: helperStationIdle 1s steps(2,end) infinite !important;
+  filter: drop-shadow(2px 3px 0 rgba(38,59,82,.18));
+}
+
+.field-helper::before {
+  display: none !important;
+}
+
+.field-helper .helper__flyers {
+  animation: none !important;
+  opacity: .18;
+  transform: rotate(8deg);
+}
+
+.field-helper--handoff {
+  animation: helperStationServe .32s steps(3,end) !important;
+  filter: brightness(1.16) drop-shadow(2px 3px 0 rgba(38,59,82,.18));
+}
+
+.field-helper--handoff .helper__flyers {
+  opacity: 1 !important;
+  animation: helperFlyerHandoff .32s steps(3,end) !important;
+}
+
+/* Proper fictional party/campaign booth. */
+.info-stand {
+  left: 57%;
+  bottom: 69px;
+  width: 176px;
+  height: 126px;
+  z-index: 10;
+  filter: drop-shadow(5px 5px 0 rgba(38,59,82,.18));
+}
+
+.info-stand__roof {
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  top: 0;
+  height: 35px;
+  display: grid;
+  place-items: center;
+  border: 4px solid var(--ink);
+  background: repeating-linear-gradient(90deg, var(--red) 0 22px, #fff7df 22px 44px);
+  box-shadow: inset 0 4px rgba(255,255,255,.35);
+}
+
+.info-stand__roof span {
+  padding: 3px 9px;
+  border: 2px solid var(--ink);
+  background: #263b52;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.info-stand__backwall {
+  position: absolute;
+  left: 13px;
+  right: 13px;
+  top: 35px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border-left: 4px solid var(--ink);
+  border-right: 4px solid var(--ink);
+  background: #eef3e5;
+}
+
+.info-stand__backwall b,
+.info-stand__backwall small {
+  display: block;
+}
+
+.info-stand__backwall b {
+  color: #377fca;
+  font-size: 11px;
+  letter-spacing: .05em;
+}
+
+.info-stand__backwall small {
+  margin-top: 2px;
+  color: #486078;
+  font-size: 6px;
+  font-weight: 900;
+}
+
+.info-stand__counter {
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  bottom: 8px;
+  height: 44px;
+  border: 4px solid var(--ink);
+  background: #e4c28f;
+  box-shadow: inset 0 -8px #bc8f62;
+}
+
+.info-stand__counter::before,
+.info-stand__counter::after {
+  content: "";
+  position: absolute;
+  bottom: -31px;
+  width: 6px;
+  height: 28px;
+  background: var(--ink);
+}
+
+.info-stand__counter::before { left: 15px; }
+.info-stand__counter::after { right: 15px; }
+
+.info-stand__leaflets {
+  position: absolute;
+  left: 12px;
+  top: -13px;
+  padding: 3px 5px;
+  border: 2px solid var(--ink);
+  background: #fff9e3;
+  color: var(--red);
+  font-size: 7px;
+  font-weight: 900;
+  transform: rotate(-3deg);
+  box-shadow: 5px 3px 0 -2px #fff9e3, 7px 3px 0 -2px var(--ink);
+}
+
+.info-stand__flag {
+  right: -8px;
+  top: 28px;
+  height: 60px;
+}
+
+.info-stand__flag::after {
+  content: "★";
+  width: 28px;
+  height: 22px;
+  background: var(--blue);
+}
+
+.info-stand__queue-mark {
+  position: absolute;
+  left: -56px;
+  bottom: -2px;
+  padding: 3px 5px;
+  border: 2px dashed #486078;
+  background: rgba(255,255,255,.72);
+  color: #486078;
+  font-size: 5px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+/* The old infostand subparts are retired. */
+.info-stand__awning,
+.info-stand__table,
+.info-stand__box {
+  display: none !important;
+}
+
+@keyframes passerStreetJourney {
+  0%   { left: -72px; opacity: 1; }
+  48%  { left: 34%; opacity: 1; }
+  48.01%, 63% { left: 34%; opacity: 1; }
+  100% { left: calc(100% + 72px); opacity: 1; }
+}
+
+@keyframes passerStandJourney {
+  0%   { left: -72px; opacity: 1; }
+  54%  { left: 52%; opacity: 1; }
+  54.01%, 70% { left: 52%; opacity: 1; }
+  100% { left: calc(100% + 72px); opacity: 1; }
+}
+
+@keyframes passerStreetFlyer {
+  0%, 51% { opacity: 0; transform: translateY(3px) rotate(8deg); }
+  55%, 100% { opacity: 1; transform: translateY(0) rotate(8deg); }
+}
+
+@keyframes passerStandFlyer {
+  0%, 58% { opacity: 0; transform: translateY(3px) rotate(8deg); }
+  62%, 100% { opacity: 1; transform: translateY(0) rotate(8deg); }
+}
+
+@keyframes passerStreetGain {
+  0%, 52% { opacity: 0; transform: translate(-50%,4px); }
+  56%, 64% { opacity: 1; transform: translate(-50%,-2px); }
+  69%, 100% { opacity: 0; transform: translate(-50%,-10px); }
+}
+
+@keyframes passerStandGain {
+  0%, 59% { opacity: 0; transform: translate(-50%,4px); }
+  63%, 71% { opacity: 1; transform: translate(-50%,-2px); }
+  76%, 100% { opacity: 0; transform: translate(-50%,-10px); }
+}
+
+@keyframes passerWalkBob {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes passerArmA {
+  0%,100% { transform: rotate(20deg); }
+  50% { transform: rotate(-18deg); }
+}
+
+@keyframes passerArmB {
+  0%,100% { transform: rotate(-18deg); }
+  50% { transform: rotate(20deg); }
+}
+
+@keyframes passerLegA {
+  0%,100% { transform: rotate(10deg); }
+  50% { transform: rotate(-12deg); }
+}
+
+@keyframes passerLegB {
+  0%,100% { transform: rotate(-12deg); }
+  50% { transform: rotate(10deg); }
+}
+
+@keyframes helperStationIdle {
+  0%,100% { transform: translateY(0) scale(var(--helper-scale,.8)); }
+  50% { transform: translateY(-2px) scale(var(--helper-scale,.8)); }
+}
+
+@keyframes helperStationServe {
+  0%,100% { transform: translateY(0) scale(var(--helper-scale,.8)); }
+  50% { transform: translateX(-4px) translateY(-2px) scale(var(--helper-scale,.8)); }
+}
+
+@media (max-width: 900px) {
+  .info-stand { left: 55%; transform: scale(.86); transform-origin: bottom left; }
+  @keyframes passerStandJourney {
+    0% { left: -72px; }
+    54% { left: 49%; }
+    54.01%,70% { left: 49%; }
+    100% { left: calc(100% + 72px); }
+  }
+}
+
+@media (max-width: 650px) {
+  .info-stand { left: 52%; transform: scale(.68); transform-origin: bottom left; }
+  .street-passer { bottom: 64px; }
+  @keyframes passerStandJourney {
+    0% { left: -72px; }
+    54% { left: 44%; }
+    54.01%,70% { left: 44%; }
+    100% { left: calc(100% + 72px); }
+  }
+}
