@@ -2523,9 +2523,9 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   display: block;
 }
 
-/* Route begins directly beside the visible flyer stack at 27%. */
+/* Helper positions are controlled by JS:
+   before the stand they staff the flyer point, after build they move to the booth. */
 .field-helper {
-  left: 29% !important;
   bottom: 69px;
 }
 
