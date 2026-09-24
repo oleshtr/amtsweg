@@ -120,8 +120,11 @@ async function run() {
       await page.evaluate(() => { state.supporters = Game.CONFIG.stand.unlockSupporters; render(); });
       await page.locator('[data-action="stand"]').click();
       assert.equal(await page.locator('.info-stand').isVisible(), true);
-      await page.evaluate(() => helperFeedback(1));
-      assert.ok(await page.locator('.street-passer--stand').count() >= 1);
+      await page.evaluate(() => {
+        for (let i = 0; i < 12; i += 1) helperFeedback(1);
+      });
+      const standPassers = await page.locator('.street-passer--stand').count();
+      assert.ok(standPassers >= 1 && standPassers <= 6);
       assert.equal(await page.locator('.info-stand__roof').isVisible(), true);
       assert.equal(await page.locator('.info-stand__counter').isVisible(), true);
       await capture('stand');
