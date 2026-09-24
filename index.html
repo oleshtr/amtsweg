@@ -10,6 +10,89 @@
     <link rel="stylesheet" href="styles.css?v=030924-2" />
     <link rel="stylesheet" href="v03.css?v=030924-3" />
     <link rel="stylesheet" href="v031-city.css?v=030924-3" />
+    <style id="aw3-critical-city">
+/* AMTSWEG V0.3.1 — isolated visible street scene */
+.aw3-city{
+  position:absolute !important; left:0 !important; right:0 !important; top:0 !important;
+  height:308px !important; display:block !important; visibility:visible !important; opacity:1 !important;
+  z-index:20 !important; overflow:hidden !important; pointer-events:none !important;
+  background:linear-gradient(#69bee9 0%,#9bdef1 72%,#c8edef 100%) !important;
+}
+.aw3-sun{
+  position:absolute; right:12%; top:26px; width:50px; height:50px; border-radius:50%;
+  background:#ffe56b; border:5px solid rgba(255,255,255,.65); box-shadow:0 0 0 8px rgba(255,239,140,.2);
+}
+.aw3-cloud,.aw3-cloud::before,.aw3-cloud::after{position:absolute;background:#fff;content:"";height:22px;border-radius:2px}
+.aw3-cloud{width:88px;opacity:.9}.aw3-cloud::before{width:50px;left:19px;top:-15px}.aw3-cloud::after{width:48px;left:51px;top:-7px}
+.aw3-cloud--a{left:10%;top:48px}.aw3-cloud--b{left:58%;top:77px;transform:scale(.72)}
+
+.aw3-building{position:absolute;bottom:77px;border:4px solid #263b52;box-shadow:7px 6px rgba(38,59,82,.18)}
+.aw3-building--bakery{left:3%;width:17%;height:142px;background:#e7c7a4}
+.aw3-building--home{left:22%;width:18%;height:160px;background:#bfd0d3}
+.aw3-building--cafe{right:7%;width:19%;height:137px;background:#e3b4ad}
+.aw3-roof{position:absolute;left:-9px;right:-9px;top:-22px;height:24px;background:#8d5a53;border:4px solid #263b52;clip-path:polygon(0 100%,8% 10%,92% 10%,100% 100%)}
+.aw3-building--home .aw3-roof{background:#577b92}.aw3-building--cafe .aw3-roof{background:#705c72}
+.aw3-sign{position:absolute;left:13%;right:13%;top:13px;padding:3px;background:#fff2c8;border:2px solid #263b52;text-align:center;font-size:8px;font-weight:900;color:#263b52}
+.aw3-window{position:absolute;top:51px;width:28px;height:28px;background:#91d4e0;border:4px solid #263b52;box-shadow:inset 0 -7px #74adbd}
+.aw3-window--l{left:17%}.aw3-window--r{right:17%}
+.aw3-door{position:absolute;left:42%;bottom:0;width:29px;height:43px;background:#735969;border:4px solid #263b52;border-bottom:0}
+
+.aw3-tree{position:absolute;bottom:77px;width:14px;height:67px;background:#8e6945;border:3px solid #263b52}
+.aw3-tree::before,.aw3-tree i,.aw3-tree b{content:"";position:absolute;border:4px solid #2d5b54;background:#56a777}
+.aw3-tree::before{width:56px;height:35px;left:-24px;top:-18px}.aw3-tree i{width:42px;height:33px;left:-17px;top:-40px}.aw3-tree b{width:28px;height:26px;left:-10px;top:-56px;background:#88ca85}
+.aw3-tree--a{left:44%}.aw3-tree--b{right:30%;transform:scale(.83);transform-origin:bottom}
+.aw3-bench{position:absolute;right:34%;bottom:81px;width:70px;height:15px;background:#b27851;border:3px solid #263b52;box-shadow:0 -14px 0 -1px #875c4b,0 -17px 0 2px #263b52,5px 16px #263b52,55px 16px #263b52}
+
+.aw3-sidewalk{position:absolute;left:0;right:0;bottom:50px;height:31px;background:repeating-linear-gradient(90deg,#b7c8c5 0 55px,#849da0 55px 59px);border-top:4px solid #263b52;border-bottom:4px solid #263b52}
+.aw3-road{position:absolute;left:0;right:0;bottom:0;height:53px;background:#6e8190;border-top:4px solid #263b52}
+.aw3-road i{position:absolute;top:25px;width:95px;height:6px;background:#fff3bd;box-shadow:3px 3px #41546a}
+.aw3-road i:nth-child(1){left:3%}.aw3-road i:nth-child(2){left:23%}.aw3-road i:nth-child(3){left:43%}.aw3-road i:nth-child(4){left:63%}.aw3-road i:nth-child(5){left:83%}
+
+.aw3-flyers{position:absolute;left:31%;bottom:86px;width:62px;height:40px}
+.aw3-flyers i{position:absolute;left:5px;width:48px;height:23px;border:3px solid #263b52;background:#fff9e3}
+.aw3-flyers i:nth-child(1){top:14px;transform:rotate(-5deg)}.aw3-flyers i:nth-child(2){top:7px;transform:rotate(4deg)}.aw3-flyers i:nth-child(3){top:0}
+.aw3-flyers b{position:absolute;z-index:2;top:8px;left:13px;color:#e84d45;font-size:8px}
+
+.aw3-candidate{position:absolute;left:47%;bottom:76px;width:44px;height:83px;animation:aw3Bob .85s steps(2,end) infinite}
+.aw3-candidate i{position:absolute;display:block}
+.aw3-candidate__head{left:9px;top:12px;width:25px;height:25px;border:3px solid #263b52;background:#e9ad76}
+.aw3-candidate__hair{left:7px;top:7px;z-index:2;width:29px;height:13px;border:3px solid #263b52;background:#603e2c}
+.aw3-candidate__body{left:5px;top:34px;width:33px;height:29px;border:3px solid #263b52;background:#2d64a1}
+.aw3-candidate__legs{left:10px;top:60px;width:22px;height:21px;border-left:7px solid #263b52;border-right:7px solid #263b52}
+.aw3-candidate__arm{top:40px;right:-4px;width:15px;height:9px;border:3px solid #263b52;background:#e9ad76;transform-origin:left center}
+.aw3-candidate__paper{right:-19px;top:31px;width:19px;height:26px;display:grid !important;place-items:center;border:2px solid #263b52;background:#fffdf5;color:#e84d45;font-style:normal;font-weight:900}
+.aw3-build-tag{position:absolute;right:12px;top:10px;padding:4px 7px;border:2px solid #263b52;background:#fff3a5;color:#263b52;font-size:7px;font-weight:900}
+@keyframes aw3Bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+
+/* gameplay overlays live above the canonical city */
+.world > .v03-surface{z-index:30 !important;background:transparent !important}
+.world > .resource-bursts{z-index:60 !important}
+.world > .world-status{z-index:70 !important}
+.world[data-stage="0"]{background:#69bee9 !important}
+
+
+/* Hard runtime visibility guard for the start scene. */
+.world > .aw3-city {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 100 !important;
+}
+.world > .v03-surface {
+  background: transparent !important;
+  z-index: 200 !important;
+}
+.world > .v03-surface > .townscape,
+.world > .v03-surface > .candidate,
+.world > .v03-surface > .flyer-stack,
+.world > .v03-surface > .surface-strip,
+.world > .v03-surface > .road {
+  display: none !important;
+}
+.world > .operations { z-index: 300 !important; }
+.world > .resource-bursts { z-index: 400 !important; }
+.world > .world-status { z-index: 500 !important; }
+    </style>
   </head>
   <body>
     <main class="game-shell">
@@ -80,7 +163,7 @@
               <i class="aw3-candidate__paper">!</i>
             </div>
 
-            <div class="aw3-build-tag">V0.3 · STRASSENWAHLKAMPF</div>
+            <div class="aw3-build-tag" style="display:block!important;visibility:visible!important;opacity:1!important;">V0.3.1 · STRASSENWAHLKAMPF</div>
           </div>
 
           <div class="v03-surface">
