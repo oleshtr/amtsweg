@@ -192,6 +192,8 @@ function renderHelpers() {
     helper.className = 'field-helper';
     helper.style.setProperty('--helper-index', index);
     helper.style.setProperty('--helper-delay', (-index * .73) + 's');
+    helper.style.left = (48 + (index % 5) * 4.8) + '%';
+    helper.style.top = (188 + Math.floor(index / 5) * 14) + 'px';
     helper.innerHTML = '<i class="field-helper__cap"></i><i class="field-helper__head"></i><i class="field-helper__body"></i><i class="field-helper__legs"></i><i class="field-helper__flyer"></i>';
     elements.helperField.appendChild(helper);
   }
