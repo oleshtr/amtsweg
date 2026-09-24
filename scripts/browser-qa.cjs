@@ -50,12 +50,20 @@ async function run() {
       assert.equal(await page.locator('.cityhall').isVisible(), false);
       await capture('fresh');
 
-      const spamResult = await page.evaluate(() => {
+      const spamAudit = await page.evaluate(() => {
         const button = document.querySelector('[data-action="flyer"]');
         for (let i = 0; i < 25; i += 1) button.click();
-        return state.supporters;
+        return {
+          supporters: state.supporters,
+          flyers: document.querySelectorAll('.v03-flyer').length,
+          recipients: document.querySelectorAll('.production-recipient').length,
+          gains: document.querySelectorAll('.v03-gain').length,
+        };
       });
-      assert.equal(spamResult, 1);
+      assert.equal(spamAudit.supporters, 25);
+      assert.ok(spamAudit.flyers <= 12);
+      assert.ok(spamAudit.recipients <= 4);
+      assert.ok(spamAudit.gains <= 8);
 
       await page.evaluate(() => { state.supporters = Game.CONFIG.helper.unlockSupporters; state.lastManualAt = 0; render(); });
       assert.equal(await page.locator('[data-build="helper"]').isVisible(), true);
@@ -122,7 +130,7 @@ async function run() {
       assert.equal(await page.evaluate(() => state.helperCount), 2);
       assert.equal(await page.locator('[data-helper-field] .field-helper').count(), 2);
 
-      results.push({ viewport: width + '×' + height, cooldown: true, helpersAreVisibleUnits: true,
+      results.push({ viewport: width + '×' + height, spamClicks: true, helpersAreVisibleUnits: true,
         standCycles: true, officeCycles: true, prestige: true, reload: true, migration: true });
       await page.close();
     }
