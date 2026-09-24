@@ -2104,3 +2104,51 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   .world[data-stage="5"] .passer--two,
   .world[data-stage="6"] .passer--two { animation-name: standVisitMobile; }
 }
+
+
+/* V0.2 production-chain foundation: contacts are a local buffer, not a HUD currency. */
+.campaign-queue {
+  display: none;
+  position: absolute;
+  left: 92px;
+  bottom: 27px;
+  z-index: 11;
+  align-items: flex-end;
+  gap: 2px;
+  pointer-events: none;
+}
+.campaign-queue i {
+  display: none;
+  width: 9px;
+  height: 18px;
+  border: 2px solid #263b52;
+  background: #e5b875;
+  box-shadow: inset 0 -6px #927055;
+}
+.world[data-queue-tier="1"] .campaign-queue,
+.world[data-queue-tier="2"] .campaign-queue,
+.world[data-queue-tier="3"] .campaign-queue { display: flex; }
+.world[data-queue-tier="1"] .campaign-queue i:nth-child(-n+2),
+.world[data-queue-tier="2"] .campaign-queue i:nth-child(-n+4),
+.world[data-queue-tier="3"] .campaign-queue i { display: block; }
+.world--campaign-jam .campaign-point__table,
+.world--campaign-jam .campaign-point__box {
+  filter: brightness(1.12);
+  animation: campaignJamPulse .8s steps(2, end) infinite alternate;
+}
+.campaign-control__queue {
+  color: #9a4a35 !important;
+  font-weight: 900;
+}
+.campaign-control--contact {
+  animation: contactPulse .16s steps(2, end);
+}
+@keyframes campaignJamPulse {
+  from { transform: translateY(0); }
+  to { transform: translateY(-2px); }
+}
+@keyframes contactPulse {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.18); }
+  100% { filter: brightness(1); }
+}

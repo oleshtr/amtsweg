@@ -12,6 +12,7 @@ const elements = {
   electionCost: $('[data-election-cost]'), ending: $('[data-ending]'),
   status: $('[data-status-copy]'), toast: $('[data-toast]'),
   reset: $('[data-action="reset"]'), supporterHud: $('[data-supporter-stat]'),
+  contactBuffer: $('[data-contact-buffer]'),
 };
 const integerFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
 const smallFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
@@ -109,9 +110,10 @@ function flyerFeedback() {
     layer.appendChild(particle);
     setTimeout(() => particle.remove(), visual.flyerAnimationMs + 80);
   }
-  elements.supporterHud.classList.remove('hud-stat--pulse');
-  void elements.supporterHud.offsetWidth;
-  elements.supporterHud.classList.add('hud-stat--pulse');
+  const campaignControl = $('[data-upgrade="campaign"]');
+  campaignControl.classList.remove('campaign-control--contact');
+  void campaignControl.offsetWidth;
+  campaignControl.classList.add('campaign-control--contact');
 }
 
 function confetti() {
@@ -159,8 +161,11 @@ function render() {
   elements.scene.dataset.helperTier = state.helperLevel >= 20 ? '20' : state.helperLevel >= 10 ? '10' : state.helperLevel >= 5 ? '5' : '1';
   elements.scene.dataset.standTier = state.standLevel >= 20 ? '20' : state.standLevel >= 10 ? '10' : state.standLevel >= 5 ? '5' : '1';
   elements.scene.dataset.officeTier = state.officeLevel >= 20 ? '20' : state.officeLevel >= 10 ? '10' : state.officeLevel >= 5 ? '5' : '1';
+  elements.scene.classList.toggle('world--campaign-jam', bottleneck.campaign);
   elements.scene.classList.toggle('world--stand-jam', bottleneck.stand);
   elements.scene.classList.toggle('world--office-jam', bottleneck.office);
+  elements.scene.dataset.queueTier = state.contacts >= 12 ? '3' :
+    state.contacts >= 6 ? '2' : state.contacts >= 1 ? '1' : '0';
   elements.scene.style.setProperty('--helper-route-duration',
     Math.max(Game.CONFIG.helper.minVisualCycleSeconds,
       Game.CONFIG.helper.visualContactsPerCycle / Math.max(Game.helperRate(state), 0.001)) + 's');
@@ -171,13 +176,14 @@ function render() {
   elements.cashHud.hidden = !unlocked.cash;
   $('.game-hud').classList.toggle('game-hud--compact', !unlocked.cash);
   elements.flyer.disabled = state.electionFinished;
-  elements.flyer.querySelector('small').textContent = '+' + outputFormat.format(Game.flyerOutput(state)) + ' Unterstützer · sofort';
+  elements.flyer.querySelector('small').textContent = '+' + outputFormat.format(Game.flyerOutput(state)) + ' Kontakt · sofort';
   const campaign = Game.CONFIG.campaign;
   const campaignButton = $('[data-upgrade="campaign"]');
   const nextCampaignLevel = state.campaignLevel + 1;
   campaignButton.disabled = !Game.canBuy(state, 'campaign');
   $('[data-campaign-level]').textContent = state.campaignLevel;
-  $('[data-campaign-output]').textContent = '+' + outputFormat.format(Game.flyerOutput(state)) + ' / Klick';
+  $('[data-campaign-output]').textContent = outputFormat.format(Game.campaignCapacity(state)) + ' Kontakte/s Verarbeitung';
+  elements.contactBuffer.textContent = Math.ceil(state.contacts) + ' warten';
   $('[data-campaign-next]').textContent = nextCampaignLevel <= campaign.freeThroughLevel ?
     '↑ KOSTENLOS · AB ' + campaign.freeSupporters[nextCampaignLevel] + ' ★' :
     !unlocked.cash ? '↑ KASSE AB ' + Game.CONFIG.cashUnlockSupporters + ' ★' :
@@ -208,8 +214,9 @@ function render() {
   elements.ending.hidden = !state.electionFinished;
   elements.status.textContent = state.electionFinished ? 'Kommunalwahl geschafft!' :
     stage >= 5 ? 'NÄCHSTES ZIEL: KOMMUNALWAHL' :
-    bottleneck.stand ? 'Passanten warten am Infostand.' :
     bottleneck.office ? 'Im Ortsbüro stauen sich Spenden.' :
+    bottleneck.campaign ? 'Am Kampagnenplatz warten Kontakte auf Verarbeitung.' :
+    bottleneck.stand ? 'Passanten warten am Infostand.' :
     stage >= 4 ? 'Das Ortsbüro organisiert die Spenden.' :
     stage >= 3 ? 'Der Infostand verarbeitet Kontakte.' :
     stage >= 2 ? 'Dein Helferteam verteilt Flyer.' :
@@ -274,12 +281,16 @@ function frame(now) {
   const delta = Math.min(1, Math.max(0, (now - lastFrame) / 1000));
   lastFrame = now;
   const beforeSupporters = state.supporters;
+  const beforeContacts = state.contacts;
+  const beforeEuros = state.euros;
   if (!state.electionFinished) {
     state = Game.tick(state, delta);
     if (now - lastRender >= Game.CONFIG.tickMs &&
-      (state.supporters !== beforeSupporters || Game.euroRate(state))) render();
+      (state.supporters !== beforeSupporters || state.contacts !== beforeContacts ||
+        state.euros !== beforeEuros)) render();
   }
-  if (Game.euroRate(state) && now - lastCoin > Game.CONFIG.visual.coinIntervalMs) {
+  if (state.fundraisingBuffer > 0 && Game.euroRate(state) &&
+      now - lastCoin > Game.CONFIG.visual.coinIntervalMs) {
     elements.scene.classList.remove('world--coin');
     void elements.scene.offsetWidth;
     elements.scene.classList.add('world--coin');
