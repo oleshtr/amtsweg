@@ -7,7 +7,8 @@
     "check": "node --check src/game.js && node --check src/main.js",
     "test": "node --test tests/*.test.js",
     "balance": "node scripts/balance.cjs",
-    "browser:qa": "node scripts/browser-qa.cjs"
+    "browser:qa": "node scripts/browser-qa.cjs",
+    "dev": "node scripts/dev-server.cjs"
   },
   "devDependencies": {
     "playwright": "^1.63.0"

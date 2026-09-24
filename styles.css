@@ -147,15 +147,15 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 .settings-button {
   border: 0;
   border-left: 4px solid rgba(21,35,58,.72);
-  background: var(--orange);
+  background: #447eaa;
   color: #fff;
   cursor: pointer;
-  font-size: 34px;
+  font-size: 22px;
   font-weight: 900;
   text-shadow: 2px 2px 0 var(--red-dark);
 }
 
-.settings-button:hover { background: #ffb552; }
+.settings-button:hover { background: #5a9ccb; }
 
 .world {
   position: relative;
@@ -1698,9 +1698,9 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 /* V0.2: station controls and production cues live in the scene. */
 .brand { padding-block: 12px; }
 .game-hud { grid-template-columns: minmax(170px, 1fr) 1fr 1fr 58px; }
-.game-hud--compact { grid-template-columns: 1fr 1fr; }
+.game-hud--compact { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 58px; }
 .primary-actions { grid-template-columns: 1fr; }
-.control-deck { grid-template-columns: minmax(230px, 360px) 1fr; }
+.control-deck { grid-template-columns: minmax(230px, 360px) minmax(210px, 270px); justify-content: center; }
 .game-button { justify-content: center; min-height: 60px; }
 .world { transition: none; }
 .world--ready { transition: height .42s steps(5, end); }
@@ -1732,6 +1732,12 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   font-size: 10px; font-weight: 900; line-height: 1.25; padding: 7px;
 }
 .station-build strong { display: block; margin-top: 3px; font-size: 13px; }
+.station-build--helper .build-progress {
+  height: 9px; margin-top: 7px; border: 2px solid #14263d;
+  background: #eee2bc; overflow: hidden;
+}
+.station-build--helper .build-progress span { display: block; height: 100%; background: #77c995; }
+.station-build--helper > small { display: block; color: #14263d; font-size: 9px; font-weight: 900; text-align: center; }
 .station-control {
   position: absolute; z-index: 5; right: 9px; bottom: 8px; width: 190px;
   background: #fff8df; text-align: left;
@@ -1781,6 +1787,18 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 .world--office-jam .cash-machine { box-shadow: -15px -7px 0 var(--yellow), -18px -10px 0 var(--ink); }
 .donor { display: none; left: 69%; bottom: 70px; }
 .world--coin .donor { display: block; animation: donorVisit 1s steps(6, end) both; }
+.crowd-reaction {
+  position: absolute; z-index: 22; left: 58%; bottom: 157px;
+  padding: 4px 7px; border: 3px solid #263b52; background: #fff3a5;
+  color: #263b52; font-size: 9px; font-weight: 900; opacity: 0;
+  pointer-events: none;
+}
+.crowd-reaction--active { animation: crowdCheer var(--cheer-duration) steps(5, end) both; }
+@keyframes crowdCheer {
+  0% { opacity: 0; transform: translateY(8px); }
+  20%, 75% { opacity: 1; transform: translateY(-5px); }
+  100% { opacity: 0; transform: translateY(-13px); }
+}
 .election-action { margin-top: 7px; background: #a7e5a7; }
 .chapter-progress { max-width: 520px; }
 @keyframes coinDrop { 0%, 15% { opacity: 0; transform: translate(30px,-20px); } 30% { opacity: 1; } 90% { opacity: 1; transform: translate(0,20px); } 100% { opacity: 0; transform: translate(0,20px); } }
@@ -1788,14 +1806,14 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 @keyframes standVisit { 0% { transform: translateX(0) scale(.8); } 35%,60% { transform: translateX(720px) scale(.8); } 100% { transform: translateX(1100px) scale(.8); } }
 @media (max-width: 900px) {
   .game-hud { grid-template-columns: 1fr 1fr 50px; }
-  .game-hud--compact { grid-template-columns: 1fr 1fr; }
+  .game-hud--compact { grid-template-columns: minmax(0, 1fr) 50px; }
   .brand { grid-column: 1 / -1; min-height: 56px; }
   .control-deck { grid-template-columns: 1fr; }
   .station-build--stand { left: 63%; }
 }
 @media (max-width: 650px) {
   .game-hud { grid-template-columns: 1fr 1fr 44px; }
-  .game-hud--compact { grid-template-columns: 1fr 1fr; }
+  .game-hud--compact { grid-template-columns: minmax(0, 1fr) 44px; }
   .brand { padding: 9px; }
   .hud-stat { min-width: 0; }
   .hud-stat__copy small { font-size: 7px; }
@@ -1929,6 +1947,45 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   color: #394960; font-size: 8px; font-weight: 900;
   transform: rotate(-5deg);
 }
+.campaign-point__table, .campaign-point__sign { display: none; }
+.campaign-point__banner, .campaign-point__materials, .campaign-point__lamp { display: none; position: absolute; }
+.campaign-point__banner {
+  left: -15px; bottom: 91px; width: 146px; padding: 4px 2px;
+  border: 3px solid #23384f; background: #f3cc73; color: #263b52;
+  box-shadow: inset 0 3px #fff1b6, 0 4px #32485c;
+  font-size: 8px; font-weight: 900; text-align: center;
+}
+.campaign-point__materials {
+  left: 5px; bottom: 5px; width: 26px; height: 21px;
+  border: 3px solid #23384f; background: #a7724a;
+  box-shadow: 21px 0 #c89762, 24px 0 #23384f;
+}
+.campaign-point__lamp {
+  right: -2px; bottom: 71px; width: 13px; height: 19px;
+  border: 3px solid #23384f; background: #fff1a0;
+  box-shadow: 0 0 15px #ffe68e;
+}
+.world[data-campaign-tier="2"] .campaign-point__stack,
+.world[data-campaign-tier="3"] .campaign-point__stack,
+.world[data-campaign-tier="5"] .campaign-point__stack,
+.world[data-campaign-tier="10"] .campaign-point__stack,
+.world[data-campaign-tier="20"] .campaign-point__stack { box-shadow: 0 -6px #fff6db, 0 -8px #34445b, 3px -13px #fff6db, 3px -15px #34445b, 5px -20px #fff6db, 5px -22px #34445b; }
+.world[data-campaign-tier="3"] .campaign-point__materials,
+.world[data-campaign-tier="5"] .campaign-point__materials,
+.world[data-campaign-tier="10"] .campaign-point__materials,
+.world[data-campaign-tier="20"] .campaign-point__materials { display: block; }
+.world[data-campaign-tier="5"] .campaign-point__table,
+.world[data-campaign-tier="10"] .campaign-point__table,
+.world[data-campaign-tier="20"] .campaign-point__table,
+.world[data-campaign-tier="5"] .campaign-point__sign,
+.world[data-campaign-tier="10"] .campaign-point__sign,
+.world[data-campaign-tier="20"] .campaign-point__sign { display: block; }
+.world[data-campaign-tier="10"] .campaign-point__banner,
+.world[data-campaign-tier="20"] .campaign-point__banner,
+.world[data-campaign-tier="20"] .campaign-point__lamp { display: block; }
+.world[data-campaign-tier="20"] .campaign-point { filter: drop-shadow(0 0 8px #ffdd85); }
+.campaign-point--level-pulse { animation: stationLevel .34s steps(3, end) !important; }
+.campaign-point--milestone-pulse { animation: stationMilestone .7s steps(5, end) !important; }
 .surface-strip {
   bottom: 53px; height: 34px;
   background: repeating-linear-gradient(90deg, #a4babb 0 55px, #7d989c 55px 58px, #b3c7c5 58px 110px);
@@ -1968,6 +2025,16 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   background: repeating-linear-gradient(90deg, #264963 0 14px, #294d67 14px 28px);
   box-shadow: inset 0 5px #62869e;
 }
+.campaign-control {
+  position: relative; inset: auto; align-self: stretch; width: 100%;
+  min-height: 70px; padding: 8px 12px; z-index: 1;
+  background: linear-gradient(#fff9d9, #ebd99d); border-width: 4px;
+  box-shadow: inset 0 3px #fff, 0 5px #111f31;
+}
+.campaign-control span { font-size: 12px; }
+.campaign-control small { margin-top: 3px; font-size: 10px; }
+.campaign-control strong { margin-top: 4px; font-size: 13px; }
+.campaign-control:disabled { opacity: .84; }
 .game-button--primary {
   position: relative; min-height: 70px;
   border-color: #121f32; border-radius: 7px;
@@ -2028,6 +2095,7 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   .bench { right: 26%; transform: scale(.75); transform-origin: bottom; }
   .mailbox { right: 4%; transform: scale(.75); transform-origin: bottom; }
   .campaign-point { left: 4%; transform: scale(.72); transform-origin: bottom left; }
+  .campaign-control { width: 100%; min-height: 59px; text-align: center; }
   .candidate { left: 40%; }
   .flyer-particle { left: 43%; bottom: 118px; }
   .game-button strong { font-size: 12px; }

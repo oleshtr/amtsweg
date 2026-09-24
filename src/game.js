@@ -7,15 +7,26 @@
 
   const CONFIG = Object.freeze({
     saveKey: 'amtsweg-v0.2-save', legacySaveKey: 'amtsweg-v0.1-save',
-    tickMs: 250, saveMs: 3000, flyerSupporters: 1,
-    cashUnlockSupporters: 350, cashBasePerSecond: 0.06,
+    tickMs: 250, saveMs: 3000,
+    cashUnlockSupporters: 100, cashBasePerSecond: 0.015,
     cashSupporterScale: 1.8, cashSaturationSupporters: 2500,
+    campaign: Object.freeze({
+      startingLevel: 1, freeThroughLevel: 3,
+      freeSupporters: Object.freeze({ 2: 30, 3: 60 }),
+      upgradeBase: 0.6, upgradeGrowth: 1.29,
+      outputBase: 1, outputPerLevel: 0.12,
+      outputMilestones: Object.freeze({ 5: 0.52, 10: 0.4, 20: 0.8 }),
+      milestones: Object.freeze([2, 3, 5, 10, 20]),
+    }),
     visual: Object.freeze({
-      maxFlyerParticles: 12, flyerAnimationMs: 450, pressMs: 130,
+      maxFlyerParticles: 12, maxArmAnimations: 4, maxPasserAnimations: 6,
+      flyerAnimationMs: 450, pressMs: 130,
       reactionMs: 360, coinIntervalMs: 5000,
+      supporterCheerStep: 200, supporterCheerMs: 900,
     }),
     helper: Object.freeze({
-      buildCost: 130, upgradeBase: 25, upgradeGrowth: 1.32,
+      buildCost: 95, unlockCampaignLevel: 6, unlockSupporters: 350,
+      upgradeBase: 25, upgradeGrowth: 1.32,
       basePerSecond: 1.25, levelBonus: 0.16, milestone5Multiplier: 1.4,
       visualContactsPerCycle: 10, minVisualCycleSeconds: 2.5,
       milestones: Object.freeze([1, 5, 10, 20]),
@@ -44,13 +55,14 @@
   const level = value => Math.min(1000, Math.floor(nonnegative(value)));
 
   function createInitialState(now = Date.now()) {
-    return { supporters: 0, euros: 0, helperLevel: 0, standLevel: 0, officeLevel: 0,
+    return { supporters: 0, euros: 0, campaignLevel: 1, helperLevel: 0, standLevel: 0, officeLevel: 0,
       electionFinished: false, startedAt: now, lastUpdatedAt: now };
   }
 
   function normalizeState(input, now = Date.now()) {
     const source = input && typeof input === 'object' ? input : {};
     const helperLevel = level(source.helperLevel ?? source.helpers);
+    const campaignLevel = Math.max(CONFIG.campaign.startingLevel, level(source.campaignLevel));
     const standLevel = level(source.standLevel ?? (source.standOwned ? 1 : 0));
     const officeLevel = level(source.officeLevel ?? (source.officeOwned ? 1 : 0));
     // A V0.1 save may have skipped gates. Preserve resources and restore the chain.
@@ -60,7 +72,7 @@
     const finished = Boolean(source.electionFinished) &&
       safeOffice >= CONFIG.election.revealOfficeLevel &&
       supporters >= CONFIG.election.targetSupporters;
-    return { supporters, euros: nonnegative(source.euros), helperLevel,
+    return { supporters, euros: nonnegative(source.euros), campaignLevel, helperLevel,
       standLevel: safeStand, officeLevel: safeOffice,
       electionFinished: finished,
       startedAt: nonnegative(source.startedAt) || now,
@@ -68,10 +80,23 @@
   }
 
   function stationCost(station, currentLevel) {
+    if (station === 'campaign') {
+      if (currentLevel < CONFIG.campaign.freeThroughLevel) return 0;
+      return money(CONFIG.campaign.upgradeBase *
+        CONFIG.campaign.upgradeGrowth ** (currentLevel - CONFIG.campaign.freeThroughLevel));
+    }
     const settings = CONFIG[station];
     if (!settings || !Object.hasOwn(settings, 'buildCost')) return Infinity;
     return currentLevel === 0 ? settings.buildCost :
       Math.ceil(settings.upgradeBase * settings.upgradeGrowth ** currentLevel);
+  }
+
+  function flyerOutput(state) {
+    const milestones = CONFIG.campaign.outputMilestones;
+    const n = state.campaignLevel || CONFIG.campaign.startingLevel;
+    return money(CONFIG.campaign.outputBase + (n - 1) * CONFIG.campaign.outputPerLevel +
+      (n >= 5 ? milestones[5] : 0) + (n >= 10 ? milestones[10] : 0) +
+      (n >= 20 ? milestones[20] : 0));
   }
 
   function helperRate(state) {
@@ -98,8 +123,9 @@
 
   function rawCashRate(state) {
     if (state.supporters < CONFIG.cashUnlockSupporters) return 0;
-    return CONFIG.cashBasePerSecond + CONFIG.cashSupporterScale * state.supporters /
-      (state.supporters + CONFIG.cashSaturationSupporters);
+    const base = Math.max(0, state.supporters - CONFIG.cashUnlockSupporters);
+    return CONFIG.cashBasePerSecond + CONFIG.cashSupporterScale * base /
+      (base + CONFIG.cashSaturationSupporters);
   }
 
   function euroRate(state) {
@@ -123,7 +149,8 @@
   function unlocks(state) {
     return {
       cash: state.supporters >= CONFIG.cashUnlockSupporters || state.helperLevel > 0,
-      helper: state.supporters >= CONFIG.cashUnlockSupporters || state.helperLevel > 0,
+      helper: (state.campaignLevel >= CONFIG.helper.unlockCampaignLevel &&
+        state.supporters >= CONFIG.helper.unlockSupporters) || state.helperLevel > 0,
       stand: state.helperLevel >= CONFIG.stand.unlockHelperLevel &&
         state.supporters >= CONFIG.stand.unlockSupporters,
       office: state.standLevel >= CONFIG.office.unlockStandLevel &&
@@ -144,7 +171,13 @@
   }
 
   function canBuy(state, station) {
-    if (state.electionFinished || !['helper', 'stand', 'office'].includes(station)) return false;
+    if (state.electionFinished || !['campaign', 'helper', 'stand', 'office'].includes(station)) return false;
+    if (station === 'campaign') {
+      const target = state.campaignLevel + 1;
+      return (target > CONFIG.campaign.freeThroughLevel ? unlocks(state).cash :
+        state.supporters >= CONFIG.campaign.freeSupporters[target]) &&
+        state.euros >= stationCost(station, state.campaignLevel);
+    }
     return unlocks(state)[station] &&
       state.euros >= stationCost(station, state[station + 'Level']);
   }
@@ -162,7 +195,7 @@
   function distributeFlyer(state, now = Date.now()) {
     const next = normalizeState(state, now);
     if (!next.electionFinished) {
-      next.supporters += CONFIG.flyerSupporters;
+      next.supporters += flyerOutput(next);
       next.lastUpdatedAt = now;
     }
     return next;
@@ -195,7 +228,7 @@
     return next;
   }
 
-  return { CONFIG, createInitialState, normalizeState, stationCost, helperRate,
+  return { CONFIG, createInitialState, normalizeState, stationCost, flyerOutput, helperRate,
     standCapacity, throughput, supporterRate, rawCashRate, euroRate, bottlenecks,
     unlocks, worldStage, canBuy, buyStation, distributeFlyer, tick,
     canRunElection, runElection };

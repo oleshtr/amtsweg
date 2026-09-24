@@ -15,6 +15,7 @@ const elements = {
 };
 const integerFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
 const smallFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
+const outputFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 });
 const moneyFormat = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const format = value => (value < 100 ? smallFormat : integerFormat).format(value);
 const cashFormat = value => moneyFormat.format(value);
@@ -25,6 +26,7 @@ let previousStage = null;
 let lastCoin = 0;
 let lastRender = lastFrame;
 let reactionIndex = 0;
+let previousCheerTier = null;
 
 function loadState() {
   try {
@@ -61,6 +63,14 @@ function flashScene() {
 }
 
 function pulseStation(name, milestone) {
+  if (name === 'campaign') {
+    const point = $('.campaign-point');
+    point.classList.remove('campaign-point--level-pulse', 'campaign-point--milestone-pulse');
+    void point.offsetWidth;
+    point.classList.add(milestone ? 'campaign-point--milestone-pulse' : 'campaign-point--level-pulse');
+    setTimeout(() => point.classList.remove('campaign-point--level-pulse', 'campaign-point--milestone-pulse'), milestone ? 700 : 340);
+    return;
+  }
   const room = $('.room--' + (name === 'helper' ? 'helpers' : name));
   room.classList.remove('room--level-pulse', 'room--milestone-pulse');
   void room.offsetWidth;
@@ -77,12 +87,14 @@ function flyerFeedback() {
   clearTimeout(flyerFeedback.pressTimer);
   flyerFeedback.pressTimer = setTimeout(() => button.classList.remove('game-button--pressed'), visual.pressMs);
   const arm = $('[data-candidate] .actor__arm');
-  arm.animate([
-    { transform: 'rotate(0deg)' }, { transform: 'rotate(-55deg)', offset: 0.45 },
-    { transform: 'rotate(0deg)' },
-  ], { duration: visual.flyerAnimationMs, easing: 'steps(4, end)' });
+  if (arm.getAnimations().length < visual.maxArmAnimations) {
+    arm.animate([
+      { transform: 'rotate(0deg)' }, { transform: 'rotate(-55deg)', offset: 0.45 },
+      { transform: 'rotate(0deg)' },
+    ], { duration: visual.flyerAnimationMs, easing: 'steps(4, end)' });
+  }
   const passers = document.querySelectorAll('.passer');
-  if (passers.length) {
+  if (passers.length && [...passers].reduce((count, passer) => count + passer.getAnimations().length, 0) < visual.maxPasserAnimations) {
     const passer = passers[reactionIndex++ % passers.length];
     passer.animate([
       { filter: 'brightness(1)' }, { filter: 'brightness(1.6)', offset: 0.5 },
@@ -115,6 +127,15 @@ function confetti() {
   }
 }
 
+function cheerCrowd() {
+  const reaction = $('.crowd-reaction');
+  reaction.style.setProperty('--cheer-duration', Game.CONFIG.visual.supporterCheerMs + 'ms');
+  reaction.classList.remove('crowd-reaction--active');
+  void reaction.offsetWidth;
+  reaction.classList.add('crowd-reaction--active');
+  setTimeout(() => reaction.classList.remove('crowd-reaction--active'), Game.CONFIG.visual.supporterCheerMs);
+}
+
 function renderStation(name, level, unlocked) {
   const build = $('[data-build="' + name + '"]');
   const buy = $('[data-action="' + name + '"]');
@@ -132,6 +153,9 @@ function render() {
   const stage = Game.worldStage(state);
   const bottleneck = Game.bottlenecks(state);
   elements.scene.dataset.stage = String(stage);
+  elements.scene.dataset.campaignTier = state.campaignLevel >= 20 ? '20' :
+    state.campaignLevel >= 10 ? '10' : state.campaignLevel >= 5 ? '5' :
+      state.campaignLevel >= 3 ? '3' : state.campaignLevel >= 2 ? '2' : '1';
   elements.scene.dataset.helperTier = state.helperLevel >= 20 ? '20' : state.helperLevel >= 10 ? '10' : state.helperLevel >= 5 ? '5' : '1';
   elements.scene.dataset.standTier = state.standLevel >= 20 ? '20' : state.standLevel >= 10 ? '10' : state.standLevel >= 5 ? '5' : '1';
   elements.scene.dataset.officeTier = state.officeLevel >= 20 ? '20' : state.officeLevel >= 10 ? '10' : state.officeLevel >= 5 ? '5' : '1';
@@ -146,10 +170,23 @@ function render() {
   elements.cashRate.textContent = unlocked.cash ? '+' + cashFormat(Game.euroRate(state)) + ' €/s' : '';
   elements.cashHud.hidden = !unlocked.cash;
   $('.game-hud').classList.toggle('game-hud--compact', !unlocked.cash);
-  elements.reset.hidden = stage === 0;
   elements.flyer.disabled = state.electionFinished;
-  elements.flyer.querySelector('small').textContent = '+1 Unterstützer · sofort';
+  elements.flyer.querySelector('small').textContent = '+' + outputFormat.format(Game.flyerOutput(state)) + ' Unterstützer · sofort';
+  const campaign = Game.CONFIG.campaign;
+  const campaignButton = $('[data-upgrade="campaign"]');
+  const nextCampaignLevel = state.campaignLevel + 1;
+  campaignButton.disabled = !Game.canBuy(state, 'campaign');
+  $('[data-campaign-level]').textContent = state.campaignLevel;
+  $('[data-campaign-output]').textContent = '+' + outputFormat.format(Game.flyerOutput(state)) + ' / Klick';
+  $('[data-campaign-next]').textContent = nextCampaignLevel <= campaign.freeThroughLevel ?
+    '↑ KOSTENLOS · AB ' + campaign.freeSupporters[nextCampaignLevel] + ' ★' :
+    !unlocked.cash ? '↑ KASSE AB ' + Game.CONFIG.cashUnlockSupporters + ' ★' :
+      '↑ ' + cashFormat(Game.stationCost('campaign', state.campaignLevel)) + ' €';
   renderStation('helper', state.helperLevel, unlocked.helper);
+  const helperShortfall = Math.max(0, Game.stationCost('helper', 0) - state.euros);
+  $('[data-helper-progress]').style.width = Math.min(100, state.euros / Game.stationCost('helper', 0) * 100) + '%';
+  $('[data-helper-shortfall]').textContent = helperShortfall > 0 ?
+    'Noch ' + cashFormat(helperShortfall) + ' €' : 'Bereit!';
   renderStation('stand', state.standLevel, unlocked.stand);
   renderStation('office', state.officeLevel, unlocked.office);
   $('[data-helper-rate]').textContent = format(Game.helperRate(state) * 60) + ' Kontakte/min';
@@ -176,11 +213,18 @@ function render() {
     stage >= 4 ? 'Das Ortsbüro organisiert die Spenden.' :
     stage >= 3 ? 'Der Infostand verarbeitet Kontakte.' :
     stage >= 2 ? 'Dein Helferteam verteilt Flyer.' :
-    stage >= 1 ? 'Die Wahlkampfkasse füllt sich automatisch.' : '';
+    stage >= 1 && !state.helperLevel && !unlocked.helper ?
+      'Helfer ab Kampagnenplatz LV ' + Game.CONFIG.helper.unlockCampaignLevel +
+      ' und ' + Game.CONFIG.helper.unlockSupporters + ' Unterstützern.' :
+    stage >= 1 && !state.helperLevel ? 'Der erste Helfer wartet auf die Wahlkampfkasse.' :
+      'Baue deinen Kampagnenplatz aus.';
   if (previousStage !== null && stage > previousStage) {
     flashScene();
     if (stage === 6) confetti();
   }
+  const cheerTier = Math.floor(state.supporters / Game.CONFIG.visual.supporterCheerStep);
+  if (previousCheerTier !== null && cheerTier > previousCheerTier && !state.electionFinished) cheerCrowd();
+  previousCheerTier = cheerTier;
   previousStage = stage;
   lastRender = performance.now();
 }
@@ -192,7 +236,7 @@ function purchase(name) {
     render();
     if (before > 0) pulseStation(name, Game.CONFIG[name].milestones.includes(state[name + 'Level']));
     saveState();
-    toast((name === 'helper' ? 'Helferteam' : name === 'stand' ? 'Infostand' : 'Ortsbüro') +
+    toast((name === 'campaign' ? 'Kampagnenplatz' : name === 'helper' ? 'Helferteam' : name === 'stand' ? 'Infostand' : 'Ortsbüro') +
       ' · Level ' + state[name + 'Level']);
   }
 }
@@ -203,8 +247,8 @@ elements.flyer.addEventListener('click', () => {
   render();
   flyerFeedback();
 });
-for (const name of ['helper', 'stand', 'office']) {
-  $('[data-action="' + name + '"]').addEventListener('click', () => purchase(name));
+for (const name of ['campaign', 'helper', 'stand', 'office']) {
+  if (name !== 'campaign') $('[data-action="' + name + '"]').addEventListener('click', () => purchase(name));
   $('[data-upgrade="' + name + '"]').addEventListener('click', () => purchase(name));
 }
 elements.election.addEventListener('click', () => {
@@ -220,6 +264,7 @@ elements.reset.addEventListener('click', () => {
   localStorage.removeItem(Game.CONFIG.legacySaveKey);
   state = Game.createInitialState();
   previousStage = null;
+  previousCheerTier = null;
   render();
   saveState();
   toast('Neuer Spielstand gestartet.');

@@ -9,16 +9,17 @@ const withResources = (state, supporters, euros) => ({ ...state, supporters, eur
 test('fresh save exposes only stage zero and hides cash', () => {
   const s = fresh();
   assert.equal(Game.worldStage(s), 0);
+  assert.equal(s.campaignLevel, 1);
   assert.equal(Game.unlocks(s).cash, false);
   assert.equal(Game.euroRate(s), 0);
   assert.equal(Game.supporterRate(s), 0);
 });
 
-test('cash unlocks after the rebalanced supporter threshold', () => {
+test('cash unlocks early with a small initial rate', () => {
   assert.equal(Game.unlocks(withResources(fresh(), C.cashUnlockSupporters - 1, 0)).cash, false);
   const s = withResources(fresh(), C.cashUnlockSupporters, 0);
   assert.equal(Game.unlocks(s).cash, true);
-  assert.ok(Game.euroRate(s) > 0);
+  assert.ok(Game.euroRate(s) >= 0.01 && Game.euroRate(s) <= 0.03);
   assert.ok(Game.euroRate(withResources(s, 2000, 0)) > Game.euroRate(s));
   const earlyLift = Game.euroRate(withResources(s, 2000, 0)) - Game.euroRate(s);
   const lateLift = Game.euroRate(withResources(s, 3650, 0)) - Game.euroRate(withResources(s, 2000, 0));
@@ -26,15 +27,17 @@ test('cash unlocks after the rebalanced supporter threshold', () => {
   assert.ok(Game.tick(s, 1, 2000).euros > 0);
 });
 
-test('active clicker replay reaches target pace at four clicks per second', () => {
-  const slow = simulate(2).minutes;
-  const normal = simulate(4).minutes;
-  const fast = simulate(6).minutes;
-  assert.ok(normal.cash >= 1 && normal.cash <= 2);
-  assert.ok(normal.helper >= 5 && normal.helper <= 7);
-  assert.ok(normal.stand >= 12 && normal.stand <= 16);
-  assert.ok(normal.office >= 24 && normal.office <= 28);
-  assert.ok(normal.finished >= 40 && normal.finished <= 45);
+test('active starter replay has early purchases and a helper around minute five', () => {
+  const runs = [2, 4, 6].map(simulate);
+  const [slow, normal, fast] = runs.map(run => run.minutes);
+  for (const run of runs) assert.ok(run.longestEarlyGapSeconds <= 30,
+    `${run.clicksPerSecond} clicks/s has a starter gap of ${run.longestEarlyGapSeconds}s`);
+  assert.ok(normal.campaign2 <= 0.5);
+  assert.ok(normal.cash >= 0.3 && normal.cash <= 0.75);
+  assert.ok(normal.campaign5 < 1.5 && normal.campaign10 < 3);
+  assert.ok(normal.helper >= 4 && normal.helper <= 6);
+  assert.ok(normal.stand > normal.helper && normal.office > normal.stand);
+  assert.ok(normal.finished > normal.office);
   for (const key of ['cash', 'helper', 'stand', 'office', 'finished']) {
     assert.ok(fast[key] < normal[key] && normal[key] < slow[key], key);
   }
@@ -53,11 +56,46 @@ test('every rapid flyer click is accepted and awarded immediately', () => {
   }
   assert.equal(Game.startFlyer, undefined);
   assert.equal(s.flyerEndsAt, undefined);
+  for (let i = 0; i < 90; i += 1) s = Game.distributeFlyer(s, 1000);
+  assert.equal(s.supporters, 100);
 });
 
-test('helper requires cash unlock and money; first purchase automates', () => {
+test('campaign costs and manual output grow through visible milestones', () => {
+  const s = fresh();
+  assert.equal(Game.stationCost('campaign', 1), 0);
+  assert.equal(Game.stationCost('campaign', 2), 0);
+  assert.equal(Game.stationCost('campaign', 3), C.campaign.upgradeBase);
+  assert.ok(Game.stationCost('campaign', 10) > Game.stationCost('campaign', 5));
+  assert.equal(Game.flyerOutput(s), 1);
+  assert.equal(Game.flyerOutput({ ...s, campaignLevel: 5 }), 2);
+  assert.equal(Game.flyerOutput({ ...s, campaignLevel: 10 }), 3);
+  assert.equal(Game.flyerOutput({ ...s, campaignLevel: 20 }), 5);
+  assert.deepEqual(C.campaign.milestones, [2, 3, 5, 10, 20]);
+  assert.equal(Game.distributeFlyer({ ...s, campaignLevel: 10 }, 1000).supporters, 3);
+});
+
+test('campaign upgrades need supporter gates first and euros after cash reveal', () => {
+  let s = fresh();
+  assert.equal(Game.canBuy(s, 'campaign'), false);
+  s.supporters = C.campaign.freeSupporters[2];
+  s = Game.buyStation(s, 'campaign', 1000);
+  assert.equal(s.campaignLevel, 2);
+  s.supporters = C.campaign.freeSupporters[3];
+  s = Game.buyStation(s, 'campaign', 1000);
+  assert.equal(s.campaignLevel, 3);
+  assert.equal(Game.canBuy({ ...s, euros: 100 }, 'campaign'), false);
+  s.supporters = C.cashUnlockSupporters;
+  s.euros = Game.stationCost('campaign', 3);
+  s = Game.buyStation(s, 'campaign', 1000);
+  assert.equal(s.campaignLevel, 4);
+  assert.equal(s.euros, 0);
+});
+
+test('helper requires campaign level, supporters and money; first purchase automates', () => {
   assert.equal(Game.canBuy(withResources(fresh(), 0, 999), 'helper'), false);
-  let s = withResources(fresh(), C.cashUnlockSupporters, C.helper.buildCost);
+  let s = withResources(fresh(), C.helper.unlockSupporters, C.helper.buildCost);
+  assert.equal(Game.canBuy(s, 'helper'), false);
+  s.campaignLevel = C.helper.unlockCampaignLevel;
   assert.equal(Game.canBuy(s, 'helper'), true);
   s = Game.buyStation(s, 'helper', 1000);
   assert.equal(s.helperLevel, 1);
@@ -66,7 +104,8 @@ test('helper requires cash unlock and money; first purchase automates', () => {
 });
 
 test('helper costs grow and level five changes production', () => {
-  let s = withResources(fresh(), C.cashUnlockSupporters, 1000);
+  let s = withResources(fresh(), C.helper.unlockSupporters, 1000);
+  s.campaignLevel = C.helper.unlockCampaignLevel;
   assert.equal(Game.stationCost('helper', 0), C.helper.buildCost);
   assert.equal(Game.stationCost('helper', 1), Math.ceil(C.helper.upgradeBase * C.helper.upgradeGrowth));
   for (let i = 0; i < 4; i += 1) s = Game.buyStation(s, 'helper', 1000);
@@ -164,10 +203,16 @@ test('normalization migrates legacy fields and sanitizes invalid values', () => 
   assert.equal(old.supporters, 0);
   assert.equal(old.euros, 0);
   assert.equal(old.helperLevel, 2);
+  assert.equal(old.campaignLevel, 1);
   assert.equal(old.standLevel, 0);
   assert.equal(old.officeLevel, 0);
   assert.equal(old.electionFinished, false);
   assert.equal(old.startedAt, 9000);
   assert.equal(old.lastUpdatedAt, 9000);
   assert.deepEqual(Game.normalizeState(JSON.parse(JSON.stringify(old)), 10000), old);
+  const previousV02 = Game.normalizeState({ supporters: 1000, euros: 10,
+    helperLevel: 5, standLevel: 1, officeLevel: 0 }, 11000);
+  assert.equal(previousV02.campaignLevel, 1);
+  assert.equal(previousV02.helperLevel, 5);
+  assert.equal(previousV02.standLevel, 1);
 });
