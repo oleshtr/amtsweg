@@ -1459,3 +1459,152 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
     scroll-behavior: auto !important;
   }
 }
+
+
+/* V0.1 progressive disclosure: the world grows only after the player earns it. */
+.world {
+  height: 308px;
+  transition: height .42s steps(5, end);
+}
+
+.campaign-house,
+.cityhall,
+.flyer-stack,
+.passer,
+.operations,
+.info-stand,
+.helper {
+  display: none;
+}
+
+.locked-tunnel,
+.scene--finished .locked-tunnel {
+  display: none !important;
+}
+
+.scene--donations .flyer-stack,
+.scene--donations .passer--one {
+  display: block;
+}
+
+.scene--helpers {
+  height: 500px;
+}
+
+.scene--helpers .campaign-house,
+.scene--helpers .operations,
+.scene--helpers .helper--one {
+  display: block;
+}
+
+.scene--stand {
+  height: 650px;
+}
+
+.scene--stand .campaign-house,
+.scene--stand .operations,
+.scene--stand .helper--one,
+.scene--stand .helper--two,
+.scene--stand .info-stand,
+.scene--stand .passer--one,
+.scene--stand .passer--two {
+  display: block;
+}
+
+.scene--office {
+  height: 800px;
+}
+
+.scene--office .campaign-house,
+.scene--office .operations,
+.scene--office .helper--one,
+.scene--office .helper--two,
+.scene--office .info-stand,
+.scene--office .passer--one,
+.scene--office .passer--two {
+  display: block;
+}
+
+.scene--election .cityhall {
+  display: block;
+  animation: upgradeReveal .32s steps(4, end);
+}
+
+.operations {
+  top: 308px;
+  bottom: 0;
+}
+
+.room {
+  left: 20%;
+  width: 62%;
+  height: 126px;
+}
+
+.room--helpers {
+  top: 18px;
+}
+
+.room--stand {
+  top: 165px;
+}
+
+.room--office {
+  top: 312px;
+}
+
+.scene--helpers .room--helpers,
+.scene--stand .room--helpers,
+.scene--office .room--helpers,
+.scene--stand .room--stand,
+.scene--office .room--stand,
+.scene--office .room--office {
+  opacity: 1;
+  visibility: visible;
+  filter: none;
+  transform: translateY(0);
+}
+
+.scene--helpers .shaft,
+.scene--stand .shaft,
+.scene--office .shaft {
+  display: block;
+}
+
+.control-deck--solo {
+  grid-template-columns: minmax(300px, 480px);
+  justify-content: center;
+}
+
+.control-deck--solo .primary-actions {
+  width: 100%;
+}
+
+.upgrade-dock[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .world { height: 288px; }
+  .scene--helpers { height: 470px; }
+  .scene--stand { height: 610px; }
+  .scene--office { height: 750px; }
+  .operations { top: 288px; }
+  .room { left: 23%; width: 68%; }
+  .room--helpers { top: 14px; }
+  .room--stand { top: 154px; }
+  .room--office { top: 294px; }
+}
+
+@media (max-width: 650px) {
+  .world { height: 252px; }
+  .scene--helpers { height: 430px; }
+  .scene--stand { height: 560px; }
+  .scene--office { height: 690px; }
+  .operations { top: 252px; }
+  .room { left: 24%; width: 72%; height: 112px; }
+  .room--helpers { top: 12px; }
+  .room--stand { top: 137px; }
+  .room--office { top: 262px; }
+  .control-deck--solo { grid-template-columns: 1fr; }
+}
