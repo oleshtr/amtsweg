@@ -2913,15 +2913,15 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 
 @keyframes passerStreetJourney {
   0%   { left: -72px; opacity: 1; }
-  46%  { left: var(--passer-stop-x, 34%); opacity: 1; }
-  46.01%, 54% { left: var(--passer-stop-x, 34%); opacity: 1; }
+  44%  { left: calc(var(--passer-stop-x, 34%) - 18px); opacity: 1; }
+  52%  { left: calc(var(--passer-stop-x, 34%) + 8px); opacity: 1; }
   100% { left: calc(100% + 72px); opacity: 1; }
 }
 
 @keyframes passerStandJourney {
   0%   { left: -72px; opacity: 1; }
-  52%  { left: var(--passer-stop-x, 52%); opacity: 1; }
-  52.01%, 60% { left: var(--passer-stop-x, 52%); opacity: 1; }
+  49%  { left: calc(var(--passer-stop-x, 52%) - 20px); opacity: 1; }
+  57%  { left: calc(var(--passer-stop-x, 52%) + 7px); opacity: 1; }
   100% { left: calc(100% + 72px); opacity: 1; }
 }
 
@@ -2986,8 +2986,8 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   .info-stand { left: 55%; transform: scale(.86); transform-origin: bottom left; }
   @keyframes passerStandJourney {
     0% { left: -72px; }
-    52% { left: var(--passer-stop-x, 49%); }
-    52.01%,60% { left: var(--passer-stop-x, 49%); }
+    49% { left: calc(var(--passer-stop-x, 49%) - 18px); }
+    57% { left: calc(var(--passer-stop-x, 49%) + 7px); }
     100% { left: calc(100% + 72px); }
   }
 }
@@ -2997,8 +2997,28 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   .street-passer { bottom: var(--passer-lane-bottom, 64px); }
   @keyframes passerStandJourney {
     0% { left: -72px; }
-    52% { left: var(--passer-stop-x, 44%); }
-    52.01%,60% { left: var(--passer-stop-x, 44%); }
+    49% { left: calc(var(--passer-stop-x, 44%) - 16px); }
+    57% { left: calc(var(--passer-stop-x, 44%) + 6px); }
     100% { left: calc(100% + 72px); }
   }
+}
+
+
+/* Keep staffed helpers visually behind the booth counter, out of the queue lane. */
+.world[data-stage="3"] .helper-field,
+.world[data-stage="4"] .helper-field,
+.world[data-stage="5"] .helper-field,
+.world[data-stage="6"] .helper-field {
+  z-index: 9;
+}
+
+.world[data-stage="3"] .info-stand,
+.world[data-stage="4"] .info-stand,
+.world[data-stage="5"] .info-stand,
+.world[data-stage="6"] .info-stand {
+  z-index: 11;
+}
+
+.passer-field {
+  z-index: 13;
 }
