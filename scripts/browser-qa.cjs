@@ -44,6 +44,7 @@ async function run() {
       assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '0');
       assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
       assert.equal(await page.locator('[data-operations]').isVisible(), false);
+      assert.equal(await page.locator('.sky').count(), 0);
       assert.equal(await page.locator('.v03-city-canvas').isVisible(), true);
       assert.equal(await page.locator('.v03-city-canvas [data-candidate]').isVisible(), true);
       const canvasBox = await page.locator('.v03-city-canvas').boundingBox();
