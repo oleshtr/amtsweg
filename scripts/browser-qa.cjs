@@ -44,11 +44,10 @@ async function run() {
       assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '0');
       assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
       assert.equal(await page.locator('[data-operations]').isVisible(), false);
-      assert.equal(await page.locator('.v03-surface').isVisible(), true);
-      assert.equal(await page.locator('.townscape').isVisible(), true);
-      assert.equal(await page.locator('[data-candidate]').isVisible(), true);
-      assert.equal(await page.locator('.road').isVisible(), true);
-      assert.equal(await page.locator('.flyer-stack').isVisible(), true);
+      assert.equal(await page.locator('.v03-city-canvas').isVisible(), true);
+      assert.equal(await page.locator('.v03-city-canvas [data-candidate]').isVisible(), true);
+      const canvasBox = await page.locator('.v03-city-canvas').boundingBox();
+      assert.ok(canvasBox && canvasBox.width > 500 && canvasBox.height > 200);
       assert.equal(await page.locator('[data-helper-field] .field-helper').count(), 0);
       assert.equal(await page.locator('[data-stand-world]').isVisible(), false);
       assert.equal(await page.locator('[data-office-world]').isVisible(), false);
