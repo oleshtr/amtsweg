@@ -80,6 +80,7 @@ function flashScene() {
 }
 
 function showGain(text, source) {
+  if (elements.burstLayer.querySelectorAll('.v03-gain').length >= 8) return;
   const gain = document.createElement('span');
   gain.className = 'v03-gain v03-gain--' + source;
   gain.textContent = text;
@@ -88,6 +89,7 @@ function showGain(text, source) {
 }
 
 function spawnRecipient(source) {
+  if (elements.burstLayer.querySelectorAll('.production-recipient').length >= 4) return;
   const recipient = document.createElement('span');
   recipient.className = 'production-recipient production-recipient--' + source;
   if (source === 'manual') {
@@ -106,7 +108,7 @@ function manualFeedback(amount) {
   setTimeout(() => elements.flyer.classList.remove('game-button--pressed'), 150);
 
   const arm = $('[data-candidate] .actor__arm');
-  if (arm) {
+  if (arm && arm.getAnimations().length < 4) {
     arm.animate([
       { transform: 'rotate(0deg)' },
       { transform: 'rotate(-58deg)', offset: .42 },
@@ -114,10 +116,12 @@ function manualFeedback(amount) {
       { transform: 'rotate(0deg)' },
     ], { duration: 560, easing: 'steps(5, end)' });
   }
-  const flyer = document.createElement('span');
-  flyer.className = 'v03-flyer';
-  elements.burstLayer.appendChild(flyer);
-  setTimeout(() => flyer.remove(), 650);
+  if (elements.burstLayer.querySelectorAll('.v03-flyer').length < 12) {
+    const flyer = document.createElement('span');
+    flyer.className = 'v03-flyer';
+    elements.burstLayer.appendChild(flyer);
+    setTimeout(() => flyer.remove(), 650);
+  }
   spawnRecipient('manual');
   showGain('+' + formatNumber(amount) + ' ★', 'manual');
   elements.supporterHud.classList.remove('hud-stat--pulse');
@@ -292,14 +296,12 @@ function render(now = Date.now()) {
   elements.district.textContent = state.district;
   elements.careerBonus.textContent = '+' + Math.round((Game.careerMultiplier(state) - 1) * 100) + '%';
 
-  const remaining = Game.nextManualInMs(state, now);
-  const ready = remaining <= 0 && !state.electionFinished;
+  const ready = !state.electionFinished;
   elements.flyer.disabled = state.electionFinished;
-  elements.flyer.classList.toggle('game-button--cooldown', !ready && !state.electionFinished);
+  elements.flyer.classList.remove('game-button--cooldown');
   elements.flyer.setAttribute('aria-disabled', ready ? 'false' : 'true');
-  elements.flyerCopy.textContent = '+' + formatNumber(Game.flyerOutput(state)) + ' Unterstützer · selbst machen';
-  const manualProgress = state.electionFinished ? 0 : Math.max(0, Math.min(1, 1 - remaining / Game.CONFIG.manual.cooldownMs));
-  elements.manualCooldown.style.width = (manualProgress * 100) + '%';
+  elements.flyerCopy.textContent = '+' + formatNumber(Game.flyerOutput(state)) + ' Unterstützer · jeder Klick zählt';
+  elements.manualCooldown.style.width = '100%';
 
   elements.operations.hidden = state.helperCount <= 0;
   renderHelpers();
