@@ -16,7 +16,7 @@
   inset: 0 0 auto !important;
   width: 100% !important;
   height: 308px !important;
-  z-index: 3 !important;
+  z-index: 10 !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
@@ -97,7 +97,7 @@
   left: 0;
   right: 0;
   height: 308px;
-  z-index: 3;
+  z-index: 10;
   display: block;
   overflow: visible;
   visibility: visible;
@@ -653,6 +653,7 @@
 
 /* The SVG city is the canonical V0.3 surface. Legacy V0.2 street actors are retired. */
 .v03-city-canvas {
+  z-index: 1 !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
