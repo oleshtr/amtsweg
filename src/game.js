@@ -27,7 +27,7 @@
       unlockSupporters: 110,
       cost: 140,
       supportersPerSecond: 4.5,
-      eurosPerSecond: 0.7,
+      eurosPerSecond: 1.2,
     }),
     election: Object.freeze({
       unlockSupporters: 280,
@@ -96,8 +96,21 @@
       helper: state.euros >= CONFIG.helper.unlockEuros || state.helpers > 0 || state.standOwned || state.officeOwned,
       stand: state.supporters >= CONFIG.stand.unlockSupporters || state.standOwned || state.officeOwned,
       office: state.supporters >= CONFIG.office.unlockSupporters || state.officeOwned,
-      election: state.supporters >= CONFIG.election.unlockSupporters || state.electionFinished,
+      election:
+        (state.officeOwned && state.supporters >= CONFIG.election.unlockSupporters) ||
+        state.electionFinished,
     };
+  }
+
+  function worldStage(state) {
+    const next = normalizeState(state);
+    if (next.electionFinished) return 6;
+    if (unlocks(next).election) return 5;
+    if (next.officeOwned) return 4;
+    if (next.standOwned) return 3;
+    if (next.helpers > 0) return 2;
+    if (unlocks(next).donations) return 1;
+    return 0;
   }
 
   function canBuyHelper(state) {
@@ -115,6 +128,7 @@
   function canRunElection(state) {
     return (
       !state.electionFinished &&
+      state.officeOwned &&
       state.supporters >= CONFIG.election.targetSupporters &&
       state.euros >= CONFIG.election.entryCost
     );
@@ -191,6 +205,7 @@
     supporterRate,
     euroRate,
     unlocks,
+    worldStage,
     canBuyHelper,
     canBuyStand,
     canBuyOffice,

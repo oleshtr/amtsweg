@@ -5,6 +5,7 @@ let state = loadState();
 let lastFrame = performance.now();
 let lastSaved = 0;
 let lastAutoBurst = 0;
+let lastRenderedStage = null;
 
 const els = {
   supporters: document.querySelector('[data-supporters]'),
@@ -123,23 +124,52 @@ function chapterPercent() {
   return Math.min(100, Math.floor((supporterPart * 0.7 + cashPart * 0.3) * 100));
 }
 
+function stageRevealText(stage) {
+  return {
+    1: 'SPENDEN FREIGESCHALTET',
+    2: 'ERSTER HELFER',
+    3: 'INFOSTAND AUFGEBAUT',
+    4: 'ORTSBÜRO ERÖFFNET',
+    5: 'KOMMUNALWAHL IN SICHT',
+    6: 'KAPITEL GESCHAFFT',
+  }[stage] || '';
+}
+
+function celebrateVictory() {
+  const amount = 36;
+  for (let i = 0; i < amount; i += 1) {
+    const bit = document.createElement('span');
+    bit.className = 'confetti-bit';
+    bit.style.left = `${Math.random() * 100}%`;
+    bit.style.animationDelay = `${Math.random() * 0.55}s`;
+    bit.style.animationDuration = `${1.8 + Math.random() * 1.4}s`;
+    bit.style.setProperty('--drift', `${Math.round(Math.random() * 120 - 60)}px`);
+    els.burstLayer.appendChild(bit);
+    bit.addEventListener('animationend', () => bit.remove(), { once: true });
+  }
+}
+
 function updateScene(unlocked) {
-  els.scene.classList.toggle('scene--helpers', state.helpers > 0);
-  els.scene.classList.toggle('scene--stand', state.standOwned);
-  els.scene.classList.toggle('scene--office', state.officeOwned);
-  els.scene.classList.toggle('scene--finished', state.electionFinished);
-  els.scene.classList.toggle('scene--donations', unlocked.donations);
-  els.scene.classList.toggle('scene--election', unlocked.election || state.electionFinished);
+  const stage = Game.worldStage(state);
+  const previousStage = lastRenderedStage;
 
-  const worldLevel =
-    1 +
-    Number(state.helpers > 0) +
-    Number(state.standOwned) +
-    Number(state.officeOwned) +
-    Number(state.electionFinished);
-
-  els.worldLevel.textContent = worldLevel;
+  els.scene.dataset.stage = String(stage);
+  els.worldLevel.textContent = Math.max(1, stage);
   els.statusCopy.textContent = currentStatus(unlocked);
+
+  if (previousStage !== null && stage > previousStage) {
+    els.scene.classList.remove('world--stage-reveal');
+    void els.scene.offsetWidth;
+    els.scene.classList.add('world--stage-reveal');
+
+    const label = stageRevealText(stage);
+    if (label) spawnResource(label, stage === 4 ? 'cash' : 'supporter', { left: 50, top: 18 });
+
+    if (stage === 6) celebrateVictory();
+    setTimeout(() => els.scene.classList.remove('world--stage-reveal'), 700);
+  }
+
+  lastRenderedStage = stage;
 }
 
 function render() {
@@ -148,6 +178,7 @@ function render() {
   const supportRate = Game.supporterRate(state);
   const cashPerSecond = Game.euroRate(state);
   const percent = chapterPercent();
+  const stage = Game.worldStage(state);
 
   els.supporters.textContent = formatNumber(state.supporters);
   els.euros.textContent = formatNumber(state.euros);
@@ -172,10 +203,10 @@ function render() {
   els.officeCard.hidden = !unlocked.office || state.officeOwned;
   els.officeButton.disabled = !Game.canBuyOffice(state) || state.electionFinished;
 
-  els.electionCard.hidden = !unlocked.election || state.electionFinished;
-  els.chapterProgress.hidden = !unlocked.election && !state.electionFinished;
-  els.controlDeck.classList.toggle('control-deck--solo', els.chapterProgress.hidden);
-  els.upgradeDock.hidden = !unlocked.helper && !unlocked.stand && !unlocked.office && !unlocked.election;
+  els.electionCard.hidden = stage < 5 || state.electionFinished;
+  els.chapterProgress.hidden = stage < 5;
+  els.controlDeck.classList.toggle('control-deck--solo', stage < 5);
+  els.upgradeDock.hidden = !unlocked.helper && !unlocked.stand && !unlocked.office && stage < 5;
 
   const supporterNeed = Math.max(0, Math.ceil(Game.CONFIG.election.targetSupporters - state.supporters));
   const euroNeed = Math.max(0, Math.ceil(Game.CONFIG.election.entryCost - state.euros));
