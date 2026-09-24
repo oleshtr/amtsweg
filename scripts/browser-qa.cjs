@@ -49,7 +49,7 @@ async function run() {
       assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
       assert.equal(await page.locator('[data-action="reset"]').isVisible(), true);
       assert.equal(await page.locator('.passer, .campaign-point, [data-upgrade="campaign"]').count(), 0);
-      for (const selector of ['.helper--one', '.room--helpers', '.info-stand', '.campaign-house', '.cityhall', '[data-build="helper"]']) {
+      for (const selector of ['.field-helper', '.room--helpers', '.info-stand', '.campaign-house', '.cityhall', '[data-build="helper"]']) {
         assert.equal(await page.locator(selector).isVisible(), false, selector + ' visible at start');
       }
       await capture('fresh');
@@ -85,7 +85,8 @@ async function run() {
       assert.equal(await page.locator('[data-build="helper"]').isVisible(), true);
       await page.locator('[data-action="helper"]').click();
       assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '1');
-      assert.equal(await page.locator('.helper--one').isVisible(), true);
+      assert.equal(await page.locator('.field-helper').count(), 1);
+      assert.equal(await page.locator('.field-helper').first().isVisible(), true);
       assert.equal(await page.locator('.room--helpers').isVisible(), true);
       assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
       const beforeAuto = await page.evaluate(() => state.supporters);
@@ -100,10 +101,11 @@ async function run() {
       await capture('cash');
       await page.waitForTimeout(400);
       await page.evaluate(() => { state.euros = 10000; render(); });
-      const helperCycleAtOne = await page.locator('.helper--one').evaluate(element => parseFloat(getComputedStyle(element).animationDuration));
+      const helperCycleAtOne = await page.locator('.field-helper').first().evaluate(element => parseFloat(getComputedStyle(element).animationDuration));
       for (let i = 0; i < 4; i += 1) await page.locator('[data-upgrade="helper"]').click();
-      const helperCycleAtFive = await page.locator('.helper--one').evaluate(element => parseFloat(getComputedStyle(element).animationDuration));
-      assert.ok(helperCycleAtFive < helperCycleAtOne);
+      assert.equal(await page.locator('.field-helper').count(), 5);
+      const helperCycleAtFive = await page.locator('.field-helper').first().evaluate(element => parseFloat(getComputedStyle(element).animationDuration));
+      assert.equal(helperCycleAtFive, helperCycleAtOne);
       assert.equal(await page.locator('[data-scene]').evaluate(element => element.classList.contains('world--stage-reveal')), false);
       await page.evaluate(() => { state.supporters = Game.CONFIG.stand.unlockSupporters; render(); });
       await page.locator('[data-action="stand"]').click();
@@ -136,7 +138,8 @@ async function run() {
       assert.equal(await page.locator('[data-scene]').getAttribute('data-stage'), '1');
       assert.equal(await page.evaluate(() => state.supporters), 67);
       assert.equal(await page.evaluate(() => state.helperLevel), 2);
-      results.push({ viewport: width + '×' + height, rapidClicks: audit.total, helperCycle: true, progression: true, reload: true, reset: true, migration: true });
+      assert.equal(await page.locator('.field-helper').count(), 2);
+      results.push({ viewport: width + '×' + height, rapidClicks: audit.total, visibleHelperUnits: true, progression: true, reload: true, reset: true, migration: true });
       await page.close();
     }
     assert.deepEqual(errors, []);
