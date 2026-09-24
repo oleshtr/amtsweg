@@ -608,10 +608,6 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   background: #fff;
   box-shadow: 4px -3px 0 #fff, 6px -3px 0 var(--ink);
 }
-.scene--helpers .helper--one { display: block; animation: helperRoute 7s linear infinite; }
-.scene--stand .helper--two,
-.scene--office .helper--two { display: block; animation: helperRouteTwo 8.5s 2s linear infinite; }
-
 .info-stand {
   display: none;
   position: absolute;
@@ -695,9 +691,6 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   font-size: 10px;
   font-weight: 900;
 }
-
-.scene--stand .info-stand,
-.scene--office .info-stand { display: block; }
 
 .operations {
   position: absolute;
@@ -819,19 +812,6 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 .room--stand { left: 43%; width: 20%; }
 .room--office { left: 65%; width: 22%; }
 
-.scene--helpers .room--helpers,
-.scene--stand .room--helpers,
-.scene--office .room--helpers,
-.scene--stand .room--stand,
-.scene--office .room--stand,
-.scene--office .room--office {
-  opacity: 1;
-  visibility: visible;
-  filter: none;
-  transform: translateY(0);
-  background: #c9d9e3;
-}
-
 .desk--flyer {
   position: absolute;
   left: 15px;
@@ -896,8 +876,6 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   border: 3px solid var(--ink);
   background: var(--yellow);
 }
-.scene--helpers .office-worker--helper { animation: workerBob .8s steps(2,end) infinite; }
-
 .room-level {
   position: absolute;
   right: 9px;
@@ -984,8 +962,6 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 }
 
 .office-worker--office { right: 46px; }
-.scene--office .office-worker--office { animation: workerBob .9s .2s steps(2,end) infinite; }
-
 .cash-machine {
   position: absolute;
   right: 7px;
@@ -999,8 +975,6 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   font-size: 17px;
   font-weight: 900;
 }
-.scene--office .cash-machine { animation: cashBlink 1.4s steps(2,end) infinite; }
-
 .locked-tunnel {
   position: absolute;
   right: -10px;
@@ -1311,14 +1285,6 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   transition: .18s ease;
 }
 .toast--visible { transform: translate(-50%, 0); opacity: 1; }
-
-.scene--finished .locked-tunnel { display: grid; }
-
-.scene--finished .cityhall {
-  animation: cityhallVictory .7s steps(4,end) infinite alternate;
-}
-.scene--finished .goal-tag { background: var(--green); color: #fff; }
-.scene--finished .world-status { background: var(--green-dark); }
 
 @keyframes cloudMove {
   from { left: -180px; }
