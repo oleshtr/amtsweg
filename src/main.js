@@ -28,6 +28,7 @@ let lastRender = lastFrame;
 let previousCheerTier = null;
 let helperPulseIndex = 0;
 let passerSerial = 0;
+let lastPasserVisualAt = -Infinity;
 
 function loadState() {
   try {
@@ -119,8 +120,12 @@ function flyerFeedback() {
 }
 
 function spawnConvertedPasser(amount) {
+  const now = performance.now();
   const active = Array.from(elements.passerField.querySelectorAll('.street-passer'));
-  if (active.length >= 10) active[0].remove();
+
+  // Production is never throttled; only the visual crowd is.
+  if (active.length >= 6 || now - lastPasserVisualAt < 650) return;
+  lastPasserVisualAt = now;
 
   const index = passerSerial++;
   const passer = document.createElement('div');
@@ -139,7 +144,10 @@ function spawnConvertedPasser(amount) {
   passer.style.setProperty('--passer-skin', palette[0]);
   passer.style.setProperty('--passer-hair', palette[1]);
   passer.style.setProperty('--passer-shirt', palette[2]);
-  passer.style.setProperty('--passer-duration', ((atStand ? 6.7 : 6.2) + (index % 3) * .22) + 's');
+  const lane = index % 3;
+  passer.style.setProperty('--passer-duration', ((atStand ? 5.8 : 5.4) + lane * .16) + 's');
+  passer.style.setProperty('--passer-lane-bottom', (66 + lane * 4) + 'px');
+  passer.style.setProperty('--passer-stop-x', atStand ? (50.2 + lane * 1.2) + '%' : (32.5 + lane * 1.1) + '%');
 
   passer.innerHTML =
     '<div class="street-passer__person">' +
@@ -379,6 +387,7 @@ elements.reset.addEventListener('click', () => {
   elements.helperField.replaceChildren();
   elements.passerField.replaceChildren();
   passerSerial = 0;
+  lastPasserVisualAt = -Infinity;
   render();
   saveState();
   toast('Neuer Spielstand gestartet.');
