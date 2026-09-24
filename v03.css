@@ -10,7 +10,7 @@
   visibility: visible !important;
   opacity: 1 !important;
 }
-.world > .surface {
+.world > .v03-surface {
   display: block !important;
   position: absolute !important;
   inset: 0 0 auto !important;
@@ -20,10 +20,10 @@
   visibility: visible !important;
   opacity: 1 !important;
 }
-.world > .surface > .townscape,
-.world > .surface > .candidate,
-.world > .surface > .surface-strip,
-.world > .surface > .road {
+.world > .v03-surface > .townscape,
+.world > .v03-surface > .candidate,
+.world > .v03-surface > .surface-strip,
+.world > .v03-surface > .road {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -38,27 +38,27 @@
   visibility: visible !important;
   opacity: 1 !important;
 }
-.world > .surface > .candidate {
+.world > .v03-surface > .candidate {
   position: absolute !important;
   left: 38% !important;
   bottom: 70px !important;
   z-index: 12 !important;
 }
-.world > .surface > .surface-strip {
+.world > .v03-surface > .surface-strip {
   position: absolute !important;
   left: 0 !important;
   right: 0 !important;
   bottom: 53px !important;
   z-index: 4 !important;
 }
-.world > .surface > .road {
+.world > .v03-surface > .road {
   position: absolute !important;
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
   z-index: 3 !important;
 }
-.world > .surface > .townscape {
+.world > .v03-surface > .townscape {
   position: absolute !important;
   inset: 0 !important;
   z-index: 1 !important;
@@ -91,7 +91,18 @@
 .world[data-stage="5"],
 .world[data-stage="6"] { height: 650px; }
 
-.world .surface { height: 308px; }
+.world .v03-surface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 308px;
+  z-index: 3;
+  display: block;
+  overflow: visible;
+  visibility: visible;
+  opacity: 1;
+}
 .world[data-stage="0"] .world-status { display: flex; }
 .world[data-stage="0"] .flyer-stack { display: block; }
 
@@ -618,7 +629,11 @@
   .world[data-stage="1"], .world[data-stage="2"] { height: 610px; }
   .world[data-stage="3"], .world[data-stage="4"], .world[data-stage="5"], .world[data-stage="6"] { height: 845px; }
   .operations { top: 278px; padding: 44px 9px 9px; }
-  .world .surface { height: 278px; transform: scaleY(.9); transform-origin: top; }
+  .world .v03-surface {
+    height: 278px;
+    transform: scaleY(.9);
+    transform-origin: top;
+  }
   .production-lane { height: 169px !important; padding: 9px !important; }
   .production-lane__title { font-size: 9px; }
   .production-lane__stats span { font-size: 8px; }
