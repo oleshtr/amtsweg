@@ -124,7 +124,7 @@ function spawnConvertedPasser(amount) {
   const active = Array.from(elements.passerField.querySelectorAll('.street-passer'));
 
   // Production is never throttled; only the visual crowd is.
-  if (active.length >= 6 || now - lastPasserVisualAt < 650) return;
+  if (active.length >= 4 || now - lastPasserVisualAt < 1200) return;
   lastPasserVisualAt = now;
 
   const index = passerSerial++;
@@ -226,7 +226,10 @@ function cheerCrowd() {
 
 function renderVisibleHelpers() {
   const count = Math.max(0, Math.floor(state.helperLevel));
-  const visibleCount = Math.min(count, 16);
+  const atStand = state.standLevel > 0;
+  // The number below remains the true helper count; the street only shows the staff needed
+  // to make the station readable instead of crowding it with every purchased level.
+  const visibleCount = atStand ? Math.min(count, 2) : Math.min(count, 3);
 
   while (elements.helperField.children.length < visibleCount) {
     const index = elements.helperField.children.length;
@@ -242,19 +245,16 @@ function renderVisibleHelpers() {
     elements.helperField.lastElementChild.remove();
   }
 
-  const atStand = state.standLevel > 0;
   Array.from(elements.helperField.children).forEach((helper, index) => {
-    const column = index % 4;
-    const row = Math.floor(index / 4);
-
     if (atStand) {
-      helper.style.left = (58.4 + column * 2.8) + '%';
-      helper.style.bottom = (70 + row * 12) + 'px';
-      helper.style.setProperty('--helper-scale', row >= 2 ? '.62' : '.7');
+      // Staff stays behind/inside the booth, never in the pedestrian lane.
+      helper.style.left = (60.2 + index * 4.7) + '%';
+      helper.style.bottom = '72px';
+      helper.style.setProperty('--helper-scale', '.66');
     } else {
-      helper.style.left = (30.5 + column * 3.1) + '%';
-      helper.style.bottom = (69 + row * 10) + 'px';
-      helper.style.setProperty('--helper-scale', row >= 2 ? '.64' : '.74');
+      helper.style.left = (30.5 + index * 4.3) + '%';
+      helper.style.bottom = '69px';
+      helper.style.setProperty('--helper-scale', '.72');
     }
 
     helper.style.removeProperty('--helper-delay');
