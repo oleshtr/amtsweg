@@ -40,7 +40,7 @@ Milestones erhöhen nicht nur Zahlen, sondern verändern die Szene.
 
 ### Pace
 
-Der Balancing-Replay benutzt die echte Spiellogik inklusive manuellem Cooldown und Kaufkosten:
+Der Balancing-Replay benutzt die echte Spiellogik inklusive schnellem manuellen Klicken und Kaufkosten:
 
 | aktive Flyer-Zeit je Minute | erster Helfer | Infostand | Ortsbüro | Wahl |
 | ---: | ---: | ---: | ---: | ---: |
@@ -78,7 +78,7 @@ npm run balance
 npm run browser:qa
 ```
 
-`browser:qa` prüft den frischen Start, Anti-Spam-Cooldown, reale Helferzahl, Infostand- und Ortsbürozyklen, Wahl, Prestige, Reload und V0.2-Save-Migration bei Desktop, Tablet und Mobile.
+`browser:qa` prüft den frischen Start, Rapid-Click-Verhalten, reale Helferzahl, Infostand- und Ortsbürozyklen, Wahl, Prestige, Reload und V0.2-Save-Migration bei Desktop, Tablet und Mobile.
 
 ## Architektur
 
