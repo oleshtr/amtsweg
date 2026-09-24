@@ -11,6 +11,7 @@ const els = {
   euros: document.querySelector('[data-euros]'),
   euroStat: document.querySelector('[data-euro-stat]'),
   supporterStat: document.querySelector('[data-supporter-stat]'),
+  gameHud: document.querySelector('.game-hud'),
   rate: document.querySelector('[data-rate]'),
   cashRate: document.querySelector('[data-cash-rate]'),
   flyerButton: document.querySelector('[data-action="flyer"]'),
@@ -153,6 +154,7 @@ function render() {
   els.rate.textContent = supportRate > 0 ? `+${formatNumber(supportRate)} / Sek.` : '';
   els.cashRate.textContent = cashPerSecond > 0 ? `+${formatNumber(cashPerSecond)} € / Sek.` : '';
   els.euroStat.hidden = !unlocked.donations;
+  els.gameHud.classList.toggle('game-hud--compact', !unlocked.donations);
 
   els.flyerButton.querySelector('small').textContent = `+${Game.flyerGain(state)} Unterstützer`;
   els.donateButton.hidden = !unlocked.donations;
