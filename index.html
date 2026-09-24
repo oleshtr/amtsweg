@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#56a6db" />
     <title>AMTSWEG</title>
-    <meta name="description" content="AMTSWEG – vom politischen Nobody zur ersten Kommunalwahl." />
+    <meta name="description" content="AMTSWEG – vom politischen Nobody zum kommunalen Tycoon." />
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="v03.css" />
   </head>
   <body>
     <main class="game-shell">
@@ -15,6 +16,7 @@
         <header class="game-hud">
           <div class="brand">
             <strong class="brand__name">AMTSWEG</strong>
+            <span class="brand__chapter">BEZIRK <b data-district>1</b> · <span data-career-bonus>0%</span> ERFAHRUNGSBONUS</span>
           </div>
 
           <div class="hud-stat hud-stat--supporters" data-supporter-stat>
@@ -40,15 +42,13 @@
           </button>
         </header>
 
-        <section class="world" data-scene aria-label="Deine wachsende Wahlkampfwelt">
+        <section class="world" data-scene data-stage="0" aria-label="Deine wachsende Wahlkampfwelt">
           <div class="sky">
             <div class="sun"></div>
             <div class="cloud cloud--one"></div>
             <div class="cloud cloud--two"></div>
             <div class="cloud cloud--three"></div>
-            <div class="skyline">
-              <span></span><span></span><span></span><span></span><span></span>
-            </div>
+            <div class="skyline"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
 
           <div class="surface">
@@ -63,174 +63,113 @@
               <div class="bench"></div>
               <div class="mailbox">✉</div>
             </div>
-            <div class="campaign-house">
-              <div class="building-roof"></div>
-              <div class="campaign-house__sign">WAHLKAMPF</div>
-              <div class="building-window building-window--left"></div>
-              <div class="building-door">
-                <span class="door-knob"></span>
-              </div>
-              <div class="level-plate">
-                <small>LEVEL</small>
-                <strong data-world-level>1</strong>
-              </div>
+
+            <div class="candidate actor" data-candidate aria-hidden="true">
+              <div class="actor__hair"></div><div class="actor__head"></div>
+              <div class="actor__body actor__body--candidate"><span class="tie"></span></div>
+              <div class="actor__arm actor__arm--flyer"></div><div class="actor__legs"></div><div class="hand-flyer">!</div>
+            </div>
+
+            <div class="flyer-stack" aria-hidden="true"><span></span><span></span><span></span><b>FLYER</b></div>
+            <div class="donation-point" aria-hidden="true"><span class="donation-point__coin">€</span><b>SPENDEN</b></div>
+
+            <div class="helper-field" data-helper-field aria-label="Dein sichtbares Helferteam"></div>
+            <div class="helper-overflow" data-helper-overflow hidden></div>
+
+            <div class="info-stand" data-stand-world aria-hidden="true">
+              <div class="info-stand__awning"><span>INFOSTAND</span></div>
+              <div class="info-stand__table"></div><div class="info-stand__box">FLYER</div><div class="info-stand__flag"></div>
+              <div class="stand-worker stand-worker--one"></div><div class="stand-worker stand-worker--two"></div>
+              <div class="work-pop work-pop--stand" data-stand-pop></div>
+            </div>
+
+            <div class="campaign-house" data-office-world>
+              <div class="building-roof"></div><div class="campaign-house__sign">ORTSBÜRO</div>
+              <div class="building-window building-window--left"></div><div class="building-door"><span class="door-knob"></span></div>
+              <div class="office-window-worker office-window-worker--one"></div><div class="office-window-worker office-window-worker--two"></div>
+              <div class="work-pop work-pop--office" data-office-pop></div>
             </div>
 
             <div class="cityhall">
-              <div class="cityhall__flag"></div>
-              <div class="cityhall__roof"></div>
-              <div class="cityhall__clock">12</div>
-              <div class="cityhall__label">RATHAUS</div>
-              <div class="cityhall__door"></div>
-              <div class="goal-tag">ZIEL</div>
+              <div class="cityhall__flag"></div><div class="cityhall__roof"></div><div class="cityhall__clock">12</div>
+              <div class="cityhall__label">RATHAUS</div><div class="cityhall__door"></div><div class="goal-tag">ZIEL</div>
             </div>
 
-            <div class="flyer-stack" aria-hidden="true">
-              <span></span><span></span><span></span>
-              <b>FLYER</b>
-            </div>
-            <div class="donation-point" aria-hidden="true"><span class="donation-point__coin">€</span><b>€</b></div>
-            <div class="donor actor actor--small" aria-hidden="true">
-              <div class="actor__hair"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div>
-            </div>
-            <div class="crowd-reaction" aria-hidden="true">GUT SO! ★</div>
-            <div class="candidate actor" data-candidate aria-hidden="true">
-              <div class="actor__hair"></div>
-              <div class="actor__head"></div>
-              <div class="actor__body actor__body--candidate">
-                <span class="tie"></span>
-              </div>
-              <div class="actor__arm actor__arm--flyer"></div>
-              <div class="actor__legs"></div>
-              <div class="hand-flyer">!</div>
-            </div>
-
-
-            <div class="helper helper--one actor actor--helper" aria-hidden="true">
-              <div class="actor__cap"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div><div class="helper__flyers"></div>
-            </div>
-            <div class="helper helper--two actor actor--helper" aria-hidden="true">
-              <div class="actor__cap"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div><div class="helper__flyers"></div>
-            </div>
-
-            <div class="info-stand" aria-hidden="true">
-              <div class="info-stand__awning"><span>INFOSTAND</span></div>
-              <div class="info-stand__table"></div>
-              <div class="info-stand__box">FLYER</div>
-              <div class="info-stand__flag"></div>
-            </div>
             <div class="station-build station-build--helper" data-build="helper" hidden>
-              <button data-action="helper" type="button">HELFER ANWERBEN <strong data-helper-cost></strong></button>
+              <button data-action="helper" type="button">ERSTEN HELFER HOLEN <strong data-helper-cost>GRATIS</strong></button>
             </div>
             <div class="station-build station-build--stand" data-build="stand" hidden>
-              <button data-action="stand" type="button">INFOSTAND BAUEN <strong data-stand-cost></strong></button>
+              <button data-action="stand" type="button">INFOSTAND AUFBAUEN <strong data-stand-cost></strong></button>
             </div>
             <div class="station-build station-build--office" data-build="office" hidden>
-              <button data-action="office" type="button">ORTSBÜRO BAUEN <strong data-office-cost></strong></button>
+              <button data-action="office" type="button">ORTSBÜRO ERÖFFNEN <strong data-office-cost></strong></button>
             </div>
 
+            <div class="crowd-reaction" aria-hidden="true">GUT SO! ★</div>
             <div class="surface-strip"></div>
-            <div class="road">
-              <span class="road-line road-line--one"></span>
-              <span class="road-line road-line--two"></span>
-              <span class="road-line road-line--three"></span>
-              <span class="road-line road-line--four"></span>
-              <span class="road-line road-line--five"></span>
-            </div>
+            <div class="road"><span class="road-line road-line--one"></span><span class="road-line road-line--two"></span><span class="road-line road-line--three"></span><span class="road-line road-line--four"></span><span class="road-line road-line--five"></span></div>
           </div>
 
-          <div class="operations">
-            <div class="soil-pattern"></div>
-            <div class="shaft">
-              <div class="shaft__top">KAMPAGNEN-ZENTRALE</div>
-              <div class="shaft__cable"></div>
-              <div class="shaft__lift">
-                <span>1</span>
-              </div>
+          <div class="operations" data-operations>
+            <div class="operations__header">
+              <span>EINSATZZENTRALE</span>
+              <small>Jeder Kauf verändert die sichtbare Produktion.</small>
             </div>
 
-            <div class="room room--helpers">
-              <div class="room__label">HELFERTEAM</div>
-              <div class="desk desk--flyer">
-                <span class="paper paper--one"></span>
-                <span class="paper paper--two"></span>
-              </div>
-              <div class="room-level">
-                <small>LEVEL</small>
-                <strong data-helper-count>0</strong>
-              </div>
-              <div class="station-detail station-detail--extra-worker" aria-hidden="true">✦</div>
-              <div class="station-detail station-detail--materials" aria-hidden="true">▰ ▰ ▰</div>
-              <button class="station-control" data-upgrade="helper" type="button"><span>HELFERTEAM · LV <b data-helper-level>1</b></span><small data-helper-rate></small><strong data-helper-upgrade-label></strong></button>
+            <div class="production-lane room room--helpers" data-lane="helper">
+              <div class="production-lane__title"><span>STRASSENTEAM</span><strong>×<b data-helper-count>0</b></strong></div>
+              <div class="production-meter"><span data-helper-progress></span></div>
+              <div class="production-lane__stats"><span data-helper-rate>0 Unterstützer/min</span><small data-helper-cycle></small></div>
+              <div class="milestone-hint"><small>NÄCHSTER MEILENSTEIN</small><strong data-helper-milestone>Erste Automatisierung</strong></div>
+              <button class="station-control" data-upgrade="helper" type="button"><span>WEITEREN HELFER HOLEN</span><strong data-helper-upgrade-label></strong></button>
             </div>
 
-            <div class="room room--stand">
-              <div class="room__label">MATERIAL</div>
-              <div class="poster-rack"><span></span><span></span><span></span></div>
-              <div class="crate crate--one">!</div>
-              <div class="crate crate--two">!</div>
-              <div class="station-detail station-detail--banner" aria-hidden="true">MEHR PLATZ</div>
-              <button class="station-control" data-upgrade="stand" type="button"><span>INFOSTAND · LV <b data-stand-level>1</b></span><small data-stand-rate></small><strong>↑ <span data-stand-upgrade-cost></span> €</strong></button>
+            <div class="production-lane room room--stand" data-lane="stand">
+              <div class="production-lane__title"><span>INFOSTAND</span><strong>LV <b data-stand-level>0</b></strong></div>
+              <div class="production-meter"><span data-stand-progress></span></div>
+              <div class="production-lane__stats"><span data-stand-rate>0 Unterstützer/min</span><small data-stand-cycle></small></div>
+              <div class="milestone-hint"><small>NÄCHSTER MEILENSTEIN</small><strong data-stand-milestone>Infostand eröffnet</strong></div>
+              <button class="station-control" data-upgrade="stand" type="button"><span>INFOSTAND VERBESSERN</span><strong>↑ <span data-stand-upgrade-cost></span> €</strong></button>
             </div>
 
-            <div class="room room--office">
-              <div class="room__label">ORTSBÜRO</div>
-              <div class="office-monitor"><span></span></div>
-              <div class="office-desk"></div>
-              <div class="office-worker office-worker--office">
-                <span class="worker__head"></span><span class="worker__body"></span>
-              </div>
-              <div class="cash-machine">€</div>
-              <div class="station-detail station-detail--desk" aria-hidden="true">▤</div>
-              <div class="station-detail station-detail--second-worker" aria-hidden="true">●</div>
-              <button class="station-control" data-upgrade="office" type="button"><span>ORTSBÜRO · LV <b data-office-level>1</b></span><small data-office-rate></small><strong>↑ <span data-office-upgrade-cost></span> €</strong></button>
-            </div>
-
-            <div class="locked-tunnel">
-              <span>?</span>
-              <small>NÄCHSTES KAPITEL</small>
+            <div class="production-lane room room--office" data-lane="office">
+              <div class="production-lane__title"><span>ORTSBÜRO</span><strong>LV <b data-office-level>0</b></strong></div>
+              <div class="production-meter production-meter--cash"><span data-office-progress></span></div>
+              <div class="production-lane__stats"><span data-office-rate>0 €/min</span><small data-office-cycle></small></div>
+              <div class="milestone-hint"><small>NÄCHSTER MEILENSTEIN</small><strong data-office-milestone>Fundraising startet</strong></div>
+              <button class="station-control" data-upgrade="office" type="button"><span>ORTSBÜRO VERBESSERN</span><strong>↑ <span data-office-upgrade-cost></span> €</strong></button>
             </div>
           </div>
 
           <div class="resource-bursts" data-resource-burst-layer aria-hidden="true"></div>
-
-          <div class="world-status">
-            <span class="world-status__dot"></span>
-            <span data-status-copy>Irgendwo in Deutschland. Noch kennt dich fast niemand.</span>
-          </div>
+          <div class="world-status"><span class="world-status__dot"></span><span data-status-copy>Verteile Flyer. Noch kennt dich fast niemand.</span></div>
         </section>
 
         <section class="control-deck" data-control-deck>
           <div class="primary-actions">
             <button class="game-button game-button--primary" data-action="flyer" type="button">
               <span class="game-button__icon">▰</span>
-              <span>
-                <strong>FLYER VERTEILEN</strong>
-                <small>+1 Unterstützer · sofort</small>
-              </span>
+              <span><strong>FLYER VERTEILEN</strong><small data-flyer-copy>+1 Unterstützer · selbst machen</small></span>
+              <i class="action-cooldown"><b data-manual-cooldown></b></i>
             </button>
-
           </div>
 
           <div class="chapter-progress" data-chapter-progress hidden>
-            <div class="chapter-progress__labels">
-              <span>KOMMUNALWAHL</span>
-              <strong><span data-election-percent>0</span>%</strong>
-            </div>
-            <div class="chapter-progress__track">
-              <span data-election-bar></span>
-            </div>
-            <small data-election-mini>Noch 350 Unterstützer bis zum Kapitelziel.</small>
+            <div class="chapter-progress__labels"><span>KOMMUNALWAHL</span><strong><span data-election-percent>0</span>%</strong></div>
+            <div class="chapter-progress__track"><span data-election-bar></span></div>
+            <small data-election-mini></small>
             <button class="election-action" data-action="election" type="button">KOMMUNALWAHL ANTRETEN · <span data-election-cost></span> €</button>
           </div>
         </section>
 
         <section class="ending" data-ending hidden>
           <div class="ending__medal">★</div>
-          <div>
-            <span>KAPITEL 01 GESCHAFFT</span>
-            <h2>Vom Nobody zum kommunalen Mandat.</h2>
-            <p>Dein erster Wahlkampf ist geschafft. Kapitel 01 ist abgeschlossen.</p>
+          <div class="ending__copy">
+            <span>KOMMUNALWAHL GESCHAFFT</span>
+            <h2>Der nächste Bezirk wartet.</h2>
+            <p>Du erhältst <strong data-election-reward>+1 Erfahrung</strong>. Dieser Bonus bleibt dauerhaft und beschleunigt jeden weiteren Wahlkampf.</p>
+            <div class="prestige-summary"><span>Dauerbonus</span><strong data-ending-bonus>+12 % Produktion</strong></div>
+            <button class="next-district" data-action="next-district" type="button">NÄCHSTEN BEZIRK STARTEN →</button>
           </div>
         </section>
       </section>
