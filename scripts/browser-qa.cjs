@@ -124,7 +124,8 @@ async function run() {
         for (let i = 0; i < 12; i += 1) helperFeedback(1);
       });
       const standPassers = await page.locator('.street-passer--stand').count();
-      assert.ok(standPassers >= 1 && standPassers <= 6);
+      assert.ok(standPassers >= 1 && standPassers <= 4);
+      assert.ok(await page.locator('.field-helper').count() <= 2);
       assert.equal(await page.locator('.info-stand__roof').isVisible(), true);
       assert.equal(await page.locator('.info-stand__counter').isVisible(), true);
       await capture('stand');
