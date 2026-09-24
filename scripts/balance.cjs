@@ -1,19 +1,27 @@
-// V0.3 active replay: real game logic, including manual cooldown and visible station purchases.
+// V0.3 active replay for the spammable manual action.
 const Game = require('../src/game.js');
-const stepMs = 100;
+const stepMs = 50;
 
-function simulate(activeSecondsPerMinute = 35) {
+function simulate(clicksPerSecond = 4) {
   const goals = {};
   let state = Game.createInitialState(1000);
   let now = 1000;
+  let nextClickAt = now;
+  const clickInterval = 1000 / clicksPerSecond;
   const mark = name => {
     if (!(name in goals)) goals[name] = Math.round((now - 1000) / 6000) / 10;
   };
 
   for (; now < 1000 + 45 * 60 * 1000; now += stepMs) {
     const minutePosition = ((now - 1000) % 60000) / 1000;
-    const manuallyActive = !state.helperCount || minutePosition < activeSecondsPerMinute;
-    if (manuallyActive && Game.canDistributeFlyer(state, now)) state = Game.distributeFlyer(state, now);
+    const manuallyActive = !state.helperCount || minutePosition < 15;
+
+    while (manuallyActive && now >= nextClickAt && !state.electionFinished) {
+      state = Game.distributeFlyer(state, now);
+      nextClickAt += clickInterval;
+    }
+    if (!manuallyActive && now >= nextClickAt) nextClickAt = now + clickInterval;
+
     state = Game.tick(state, stepMs / 1000, now);
 
     if (!state.helperCount && Game.canBuy(state, 'helper')) {
@@ -50,7 +58,7 @@ function simulate(activeSecondsPerMinute = 35) {
   }
 
   return {
-    activeSecondsPerMinute,
+    clicksPerSecond,
     minutes: goals,
     final: {
       supporters: Math.round(state.supporters),
@@ -63,5 +71,5 @@ function simulate(activeSecondsPerMinute = 35) {
   };
 }
 
-if (require.main === module) console.log(JSON.stringify([20, 35, 50].map(simulate), null, 2));
+if (require.main === module) console.log(JSON.stringify([2, 4, 6].map(simulate), null, 2));
 module.exports = { simulate };
