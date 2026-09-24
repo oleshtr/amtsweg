@@ -12,6 +12,7 @@ const elements = {
   electionCost: $('[data-election-cost]'), ending: $('[data-ending]'),
   status: $('[data-status-copy]'), toast: $('[data-toast]'),
   reset: $('[data-action="reset"]'), supporterHud: $('[data-supporter-stat]'),
+  helperField: $('[data-helper-field]'),
 };
 const integerFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
 const smallFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
@@ -24,6 +25,7 @@ let lastSave = lastFrame;
 let previousStage = null;
 let lastRender = lastFrame;
 let previousCheerTier = null;
+let helperPulseIndex = 0;
 
 function loadState() {
   try {
@@ -115,10 +117,15 @@ function flyerFeedback() {
 }
 
 function helperFeedback(amount) {
-  const helper = $('.helper--one');
-  helper.classList.remove('helper--handoff');
-  void helper.offsetWidth;
-  helper.classList.add('helper--handoff');
+  const helpers = Array.from(document.querySelectorAll('.field-helper'));
+  if (helpers.length) {
+    const helper = helpers[helperPulseIndex % helpers.length];
+    helperPulseIndex += 1;
+    helper.classList.remove('field-helper--handoff');
+    void helper.offsetWidth;
+    helper.classList.add('field-helper--handoff');
+    setTimeout(() => helper.classList.remove('field-helper--handoff'), 340);
+  }
   if (state.standLevel) {
     const stand = $('.info-stand');
     stand.classList.remove('info-stand--working');
@@ -165,6 +172,33 @@ function cheerCrowd() {
   setTimeout(() => reaction.classList.remove('crowd-reaction--active'), Game.CONFIG.visual.supporterCheerMs);
 }
 
+function renderVisibleHelpers() {
+  const count = Math.max(0, Math.floor(state.helperLevel));
+  while (elements.helperField.children.length < count) {
+    const index = elements.helperField.children.length;
+    const helper = document.createElement('div');
+    helper.className = 'field-helper actor actor--helper';
+    helper.dataset.helperNumber = String(index + 1);
+    helper.setAttribute('aria-hidden', 'true');
+    helper.innerHTML = '<div class="actor__cap"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div><div class="helper__flyers"></div>';
+
+    const column = index % 6;
+    const row = Math.floor(index / 6);
+    const direction = index % 2 === 0 ? 1 : -1;
+    helper.style.left = (43 + column * 7.2) + '%';
+    helper.style.bottom = (69 + row * 8) + 'px';
+    helper.style.setProperty('--helper-scale', row >= 2 ? '.68' : row >= 1 ? '.75' : '.82');
+    helper.style.setProperty('--helper-distance-a', (direction * (22 + (index % 3) * 5)) + 'px');
+    helper.style.setProperty('--helper-distance-b', (direction * (44 + (index % 3) * 8)) + 'px');
+    helper.style.setProperty('--helper-delay', (-index * .47) + 's');
+    helper.style.setProperty('--helper-duration', Math.max(3.2, 7.2 - Math.min(index, 10) * .18) + 's');
+    elements.helperField.appendChild(helper);
+  }
+  while (elements.helperField.children.length > count) {
+    elements.helperField.lastElementChild.remove();
+  }
+}
+
 function renderStation(name, level, unlocked) {
   const build = $('[data-build="' + name + '"]');
   const buy = $('[data-action="' + name + '"]');
@@ -206,6 +240,7 @@ function render() {
   $('.game-hud').classList.toggle('game-hud--compact', !unlocked.cash);
   elements.flyer.disabled = state.electionFinished;
   elements.flyer.querySelector('small').textContent = '+1 Unterstützer · sofort';
+  renderVisibleHelpers();
   renderStation('helper', state.helperLevel, unlocked.helper);
   renderStation('stand', state.standLevel, unlocked.stand);
   renderStation('office', state.officeLevel, unlocked.office);
@@ -253,8 +288,9 @@ function purchase(name) {
     render();
     if (before > 0) pulseStation(name, Game.CONFIG[name].milestones.includes(state[name + 'Level']));
     saveState();
-    toast((name === 'helper' ? 'Helferteam' : name === 'stand' ? 'Infostand' : 'Ortsbüro') +
-      ' · Level ' + state[name + 'Level']);
+    toast(name === 'helper' ?
+      'Helfer #' + state.helperLevel + ' ist jetzt sichtbar unterwegs.' :
+      (name === 'stand' ? 'Infostand' : 'Ortsbüro') + ' · Level ' + state[name + 'Level']);
   }
 }
 
@@ -284,6 +320,8 @@ elements.reset.addEventListener('click', () => {
   state = Game.createInitialState();
   previousStage = null;
   previousCheerTier = null;
+  helperPulseIndex = 0;
+  elements.helperField.replaceChildren();
   render();
   saveState();
   toast('Neuer Spielstand gestartet.');
