@@ -27,7 +27,7 @@
       unlockSupporters: 110,
       cost: 140,
       supportersPerSecond: 4.5,
-      eurosPerSecond: 0.7,
+      eurosPerSecond: 1.2,
     }),
     election: Object.freeze({
       unlockSupporters: 280,
@@ -98,6 +98,17 @@
       office: state.supporters >= CONFIG.office.unlockSupporters || state.officeOwned,
       election: state.supporters >= CONFIG.election.unlockSupporters || state.electionFinished,
     };
+  }
+
+  function worldStage(state) {
+    const next = normalizeState(state);
+    if (next.electionFinished) return 6;
+    if (unlocks(next).election) return 5;
+    if (next.officeOwned) return 4;
+    if (next.standOwned) return 3;
+    if (next.helpers > 0) return 2;
+    if (unlocks(next).donations) return 1;
+    return 0;
   }
 
   function canBuyHelper(state) {
@@ -191,6 +202,7 @@
     supporterRate,
     euroRate,
     unlocks,
+    worldStage,
     canBuyHelper,
     canBuyStand,
     canBuyOffice,
