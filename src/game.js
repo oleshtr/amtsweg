@@ -8,39 +8,38 @@
   const CONFIG = Object.freeze({
     saveKey: 'amtsweg-v0.2-save', legacySaveKey: 'amtsweg-v0.1-save',
     tickMs: 250, saveMs: 3000, flyerSupportersPerClick: 1,
-    cashUnlockSupporters: 75,
-    fundraising: Object.freeze({
-      baseCapacityPerSecond: 0.03,
-      supporterCapacityScale: 0.0003,
+    cashUnlockSupporters: 50,
+    donation: Object.freeze({
+      supportersPerDonation: 10,
+      baseEuros: 2,
     }),
     visual: Object.freeze({
       maxFlyerParticles: 12, maxArmAnimations: 4,
       maxFloatingTexts: 8, maxRecipients: 4,
       flyerAnimationMs: 450, pressMs: 130,
-      reactionMs: 360, coinIntervalMs: 5000,
-      supporterCheerStep: 200, supporterCheerMs: 900,
+      reactionMs: 360, supporterCheerStep: 100, supporterCheerMs: 900,
     }),
     helper: Object.freeze({
-      buildCost: 0, unlockSupporters: 30,
-      upgradeBase: 4, upgradeGrowth: 1.32,
-      basePerSecond: 1.25, levelBonus: 0.16, milestone5Multiplier: 1.4,
+      buildCost: 0, unlockSupporters: 25,
+      upgradeBase: 8, upgradeGrowth: 1.38,
+      basePerSecond: 0.34, levelBonus: 0.28, milestone5Multiplier: 1.35,
       milestones: Object.freeze([1, 5, 10, 20]),
     }),
     stand: Object.freeze({
-      unlockHelperLevel: 5, unlockSupporters: 900, buildCost: 150,
-      upgradeBase: 27, upgradeGrowth: 1.18, baseCapacityPerSecond: 2,
-      capacityPerLevel: 0.4, outputMultiplier: 1.3, multiplierPerLevel: 0.018,
+      unlockHelperLevel: 3, unlockSupporters: 250, buildCost: 60,
+      upgradeBase: 20, upgradeGrowth: 1.22,
+      outputMultiplier: 1.35, multiplierPerLevel: 0.04,
       milestones: Object.freeze([1, 5, 10, 20]),
     }),
     office: Object.freeze({
-      unlockStandLevel: 10, unlockSupporters: 2200, buildCost: 350,
-      upgradeBase: 90, upgradeGrowth: 1.27, fundraisingMultiplier: 1.8,
-      multiplierPerLevel: 0.1, baseCapacityPerSecond: 2.2, capacityPerLevel: 0.15,
+      unlockStandLevel: 5, unlockSupporters: 1000, buildCost: 250,
+      upgradeBase: 80, upgradeGrowth: 1.27,
+      fundraisingMultiplier: 1.8, multiplierPerLevel: 0.12,
       milestones: Object.freeze([1, 5, 10, 20]),
     }),
     election: Object.freeze({
       revealOfficeLevel: 5, revealSupporters: 4500,
-      targetSupporters: 6500, entryCost: 1100,
+      targetSupporters: 6500, entryCost: 1000,
     }),
   });
 
@@ -51,7 +50,7 @@
 
   function createInitialState(now = Date.now()) {
     return {
-      supporters: 0, euros: 0, helperProgress: 0,
+      supporters: 0, euros: 0, donationProgress: 0, helperProgress: 0,
       helperLevel: 0, standLevel: 0, officeLevel: 0,
       electionFinished: false, startedAt: now, lastUpdatedAt: now,
     };
@@ -64,7 +63,6 @@
     const officeLevel = level(source.officeLevel ?? (source.officeOwned ? 1 : 0));
     const safeStand = helperLevel >= CONFIG.stand.unlockHelperLevel ? standLevel : 0;
     const safeOffice = safeStand >= CONFIG.office.unlockStandLevel ? officeLevel : 0;
-    // Pending contacts from the buffered V0.2 build become supporters on load.
     const supporters = nonnegative(source.supporters) + nonnegative(source.contacts);
     const finished = Boolean(source.electionFinished) &&
       safeOffice >= CONFIG.election.revealOfficeLevel &&
@@ -72,6 +70,8 @@
     return {
       supporters,
       euros: nonnegative(source.euros),
+      donationProgress: Math.min(CONFIG.donation.supportersPerDonation - 0.000001,
+        nonnegative(source.donationProgress)),
       helperProgress: Math.min(0.999999, nonnegative(source.helperProgress)),
       helperLevel, standLevel: safeStand, officeLevel: safeOffice,
       electionFinished: finished,
@@ -102,41 +102,51 @@
       (state.standLevel - 1) * CONFIG.stand.multiplierPerLevel : 1;
   }
 
-  function throughput(state) {
-    return helperRate(state);
-  }
-
   function supporterRate(state) {
-    return throughput(state) * supporterConversionMultiplier(state);
+    return helperRate(state) * supporterConversionMultiplier(state);
   }
 
-  function fundraisingCapacity(state) {
-    if (!unlocks(state).cash) return 0;
-    const organic = CONFIG.fundraising.baseCapacityPerSecond +
-      state.supporters * CONFIG.fundraising.supporterCapacityScale;
-    if (!state.officeLevel) return organic;
-    const multiplier = CONFIG.office.fundraisingMultiplier +
-      (state.officeLevel - 1) * CONFIG.office.multiplierPerLevel;
-    const officeCap = CONFIG.office.baseCapacityPerSecond +
-      (state.officeLevel - 1) * CONFIG.office.capacityPerLevel;
-    return Math.max(organic, Math.min(organic * multiplier, officeCap));
+  function donationValue(state) {
+    if (!state.officeLevel) return CONFIG.donation.baseEuros;
+    return money(CONFIG.donation.baseEuros *
+      (CONFIG.office.fundraisingMultiplier +
+        (state.officeLevel - 1) * CONFIG.office.multiplierPerLevel));
+  }
+
+  function supportersUntilDonation(state) {
+    if (!unlocks(state).cash) return CONFIG.donation.supportersPerDonation;
+    return Math.max(1, Math.ceil(CONFIG.donation.supportersPerDonation - state.donationProgress));
+  }
+
+  function addSupporters(state, amount) {
+    if (amount <= 0) return state;
+    const before = state.supporters;
+    state.supporters += amount;
+
+    if (state.helperLevel > 0 && state.supporters >= CONFIG.cashUnlockSupporters) {
+      const eligibleStart = Math.max(before, CONFIG.cashUnlockSupporters);
+      const eligibleGain = Math.max(0, state.supporters - eligibleStart);
+      state.donationProgress += eligibleGain;
+      const donations = Math.floor(state.donationProgress / CONFIG.donation.supportersPerDonation);
+      if (donations > 0) {
+        state.donationProgress -= donations * CONFIG.donation.supportersPerDonation;
+        state.euros = money(state.euros + donations * donationValue(state));
+      }
+    }
+    return state;
   }
 
   function rawCashRate(state) {
-    if (!unlocks(state).cash) return 0;
-    return CONFIG.fundraising.baseCapacityPerSecond +
-      state.supporters * CONFIG.fundraising.supporterCapacityScale;
+    return unlocks(state).cash ?
+      supporterRate(state) * donationValue(state) / CONFIG.donation.supportersPerDonation : 0;
   }
 
   function euroRate(state) {
-    return fundraisingCapacity(state);
+    return rawCashRate(state);
   }
 
-  function bottlenecks(state) {
-    const office = state.officeLevel > 0 && rawCashRate(state) *
-      (CONFIG.office.fundraisingMultiplier + (state.officeLevel - 1) * CONFIG.office.multiplierPerLevel) >
-      CONFIG.office.baseCapacityPerSecond + (state.officeLevel - 1) * CONFIG.office.capacityPerLevel;
-    return { office };
+  function bottlenecks() {
+    return { office: false };
   }
 
   function unlocks(state) {
@@ -182,7 +192,7 @@
   function distributeFlyer(state, now = Date.now()) {
     const next = normalizeState(state, now);
     if (!next.electionFinished) {
-      next.supporters += flyerOutput(next);
+      addSupporters(next, flyerOutput(next));
       next.lastUpdatedAt = now;
     }
     return next;
@@ -193,12 +203,12 @@
     if (next.electionFinished) return next;
     const seconds = Math.min(1, nonnegative(deltaSeconds));
 
-    // A completed helper cycle awards supporters in the same frame as its handoff.
     next.helperProgress += helperRate(next) * seconds;
     const completedCycles = Math.floor(next.helperProgress);
     next.helperProgress -= completedCycles;
-    if (completedCycles) next.supporters += completedCycles * supporterConversionMultiplier(next);
-    next.euros += euroRate(next) * seconds;
+    if (completedCycles) {
+      addSupporters(next, completedCycles * supporterConversionMultiplier(next));
+    }
 
     next.lastUpdatedAt = now;
     return next;
@@ -221,8 +231,8 @@
 
   return {
     CONFIG, createInitialState, normalizeState, stationCost, flyerOutput,
-    helperRate, supporterConversionMultiplier, throughput, supporterRate,
-    fundraisingCapacity, rawCashRate, euroRate, bottlenecks,
+    helperRate, supporterConversionMultiplier, supporterRate,
+    donationValue, supportersUntilDonation, rawCashRate, euroRate, bottlenecks,
     unlocks, worldStage, canBuy, buyStation, distributeFlyer, tick,
     canRunElection, runElection,
   };

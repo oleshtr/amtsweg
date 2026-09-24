@@ -22,7 +22,6 @@ let state = loadState();
 let lastFrame = performance.now();
 let lastSave = lastFrame;
 let previousStage = null;
-let lastCoin = 0;
 let lastRender = lastFrame;
 let previousCheerTier = null;
 
@@ -129,6 +128,21 @@ function helperFeedback(amount) {
   showGain(amount, 'helper');
 }
 
+function donationFeedback(amount) {
+  if (amount <= 0) return;
+  elements.scene.classList.remove('world--coin');
+  void elements.scene.offsetWidth;
+  elements.scene.classList.add('world--coin');
+  const layer = $('[data-resource-burst-layer]');
+  if (layer.querySelectorAll('.money-gain').length < 3) {
+    const gain = document.createElement('span');
+    gain.className = 'money-gain';
+    gain.textContent = '+' + cashFormat(amount) + ' €';
+    layer.appendChild(gain);
+    setTimeout(() => gain.remove(), 900);
+  }
+}
+
 function confetti() {
   const layer = $('[data-resource-burst-layer]');
   for (let i = 0; i < 20; i += 1) {
@@ -178,13 +192,16 @@ function render() {
   elements.scene.dataset.helperTier = state.helperLevel >= 20 ? '20' : state.helperLevel >= 10 ? '10' : state.helperLevel >= 5 ? '5' : '1';
   elements.scene.dataset.standTier = state.standLevel >= 20 ? '20' : state.standLevel >= 10 ? '10' : state.standLevel >= 5 ? '5' : '1';
   elements.scene.dataset.officeTier = state.officeLevel >= 20 ? '20' : state.officeLevel >= 10 ? '10' : state.officeLevel >= 5 ? '5' : '1';
+  elements.scene.dataset.supporterTier = state.supporters >= 50 ? '50' :
+    state.supporters >= 25 ? '25' : state.supporters >= 10 ? '10' : '0';
   elements.scene.classList.toggle('world--office-jam', bottleneck.office);
   elements.scene.style.setProperty('--helper-route-duration',
     Math.max(1.1, 3 / Math.max(Game.helperRate(state), 0.001)) + 's');
   elements.supporters.textContent = format(state.supporters);
   elements.euros.textContent = cashFormat(state.euros);
   elements.supportRate.textContent = state.helperLevel ? '+' + format(Game.supporterRate(state) * 60) + '/min' : '';
-  elements.cashRate.textContent = unlocked.cash ? '+' + cashFormat(Game.euroRate(state)) + ' €/s' : '';
+  elements.cashRate.textContent = unlocked.cash ?
+    'Nächste Spende in ' + Game.supportersUntilDonation(state) + ' ★' : '';
   elements.cashHud.hidden = !unlocked.cash;
   $('.game-hud').classList.toggle('game-hud--compact', !unlocked.cash);
   elements.flyer.disabled = state.electionFinished;
@@ -194,7 +211,7 @@ function render() {
   renderStation('office', state.officeLevel, unlocked.office);
   $('[data-helper-rate]').textContent = format(Game.supporterRate(state) * 60) + ' Unterstützer/min';
   $('[data-stand-rate]').textContent = '×' + smallFormat.format(Game.supporterConversionMultiplier(state)) + ' Helfer-Ertrag';
-  $('[data-office-rate]').textContent = cashFormat(Game.euroRate(state)) + ' €/s';
+  $('[data-office-rate]').textContent = cashFormat(Game.donationValue(state)) + ' € je Spende';
   $('[data-helper-count]').textContent = state.helperLevel;
   elements.progress.hidden = stage < 5;
   $('[data-control-deck]').classList.toggle('control-deck--election', stage >= 5);
@@ -215,9 +232,9 @@ function render() {
     bottleneck.office ? 'Das Ortsbüro erreicht seine Spendenkapazität.' :
     stage >= 4 ? 'Das Ortsbüro organisiert die Spenden.' :
     stage >= 3 ? 'Der Infostand verstärkt die Helferarbeit.' :
-    stage >= 2 ? 'Unterstützer spenden für deinen Wahlkampf.' :
-    stage >= 1 ? 'Dein Helfer verteilt automatisch Flyer.' :
-      'Verteile Flyer. Ab 30 Unterstützern kannst du einen Helfer anwerben.';
+    stage >= 2 ? 'Je 10 neue Unterstützer kommt sichtbar eine Spende.' :
+    stage >= 1 ? 'Dein Helfer verteilt sichtbar Flyer und gewinnt Unterstützer.' :
+      'Verteile Flyer. Ab 25 Unterstützern kannst du einen Helfer anwerben.';
   if (previousStage !== null && stage > previousStage) {
     flashScene();
     if (stage === 6) confetti();
@@ -243,9 +260,11 @@ function purchase(name) {
 
 elements.flyer.addEventListener('click', () => {
   if (state.electionFinished) return;
+  const beforeEuros = state.euros;
   state = Game.distributeFlyer(state);
   render();
   flyerFeedback();
+  if (state.euros > beforeEuros) donationFeedback(state.euros - beforeEuros);
 });
 for (const name of ['helper', 'stand', 'office']) {
   $('[data-action="' + name + '"]').addEventListener('click', () => purchase(name));
@@ -280,15 +299,9 @@ function frame(now) {
     if (state.helperLevel && state.supporters > beforeSupporters) {
       helperFeedback(state.supporters - beforeSupporters);
     }
+    if (state.euros > beforeEuros) donationFeedback(state.euros - beforeEuros);
     if (now - lastRender >= Game.CONFIG.tickMs &&
       (state.supporters !== beforeSupporters || state.euros !== beforeEuros)) render();
-  }
-  if (Game.euroRate(state) &&
-      now - lastCoin > Game.CONFIG.visual.coinIntervalMs) {
-    elements.scene.classList.remove('world--coin');
-    void elements.scene.offsetWidth;
-    elements.scene.classList.add('world--coin');
-    lastCoin = now;
   }
   if (now - lastSave > Game.CONFIG.saveMs) saveState();
   requestAnimationFrame(frame);

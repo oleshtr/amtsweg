@@ -2028,3 +2028,37 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   .flyer-recipient--helper { left: 64%; }
   .flyer-particle { top: 156px; }
 }
+
+
+/* Simple visible cause-and-effect loop. */
+.world[data-supporter-tier="10"] .flyer-stack,
+.world[data-supporter-tier="25"] .flyer-stack,
+.world[data-supporter-tier="50"] .flyer-stack {
+  filter: drop-shadow(0 0 4px #fff3a5);
+}
+.world[data-supporter-tier="25"] .flyer-stack span:nth-child(1),
+.world[data-supporter-tier="50"] .flyer-stack span:nth-child(1) {
+  transform: translate(-4px, 3px) rotate(-8deg);
+}
+.world[data-supporter-tier="50"] .donation-point {
+  filter: drop-shadow(0 0 5px #ffd449);
+}
+.money-gain {
+  position: absolute;
+  z-index: 36;
+  top: 155px;
+  left: 66%;
+  padding: 5px 8px;
+  border: 3px solid #263b52;
+  background: #fff0a3;
+  color: #5c4311;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 3px #263b52;
+  animation: moneyRise .9s ease-out forwards;
+}
+@keyframes moneyRise {
+  0% { opacity: 0; transform: translateY(12px) scale(.9); }
+  20%,70% { opacity: 1; transform: translateY(-6px) scale(1); }
+  100% { opacity: 0; transform: translateY(-30px) scale(1); }
+}
