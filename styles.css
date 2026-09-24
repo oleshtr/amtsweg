@@ -1483,23 +1483,26 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 
 .world[data-stage="1"] .flyer-stack,
 .world[data-stage="1"] .passer--one,
-.world[data-stage="1"] .world-status,
 .world[data-stage="2"] .flyer-stack,
 .world[data-stage="2"] .passer--one,
-.world[data-stage="2"] .world-status,
 .world[data-stage="3"] .flyer-stack,
 .world[data-stage="3"] .passer--one,
-.world[data-stage="3"] .world-status,
 .world[data-stage="4"] .flyer-stack,
 .world[data-stage="4"] .passer--one,
-.world[data-stage="4"] .world-status,
 .world[data-stage="5"] .flyer-stack,
 .world[data-stage="5"] .passer--one,
-.world[data-stage="5"] .world-status,
 .world[data-stage="6"] .flyer-stack,
-.world[data-stage="6"] .passer--one,
-.world[data-stage="6"] .world-status {
+.world[data-stage="6"] .passer--one {
   display: block;
+}
+
+.world[data-stage="1"] .world-status,
+.world[data-stage="2"] .world-status,
+.world[data-stage="3"] .world-status,
+.world[data-stage="4"] .world-status,
+.world[data-stage="5"] .world-status,
+.world[data-stage="6"] .world-status {
+  display: flex;
 }
 
 .world[data-stage="2"],
@@ -1565,13 +1568,11 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 .world[data-stage="5"] .campaign-house,
 .world[data-stage="6"] .campaign-house {
   display: block;
-  animation: upgradeReveal .32s steps(4, end);
 }
 
 .world[data-stage="5"] .cityhall,
 .world[data-stage="6"] .cityhall {
   display: block;
-  animation: upgradeReveal .32s steps(4, end);
 }
 
 .operations {
@@ -1607,7 +1608,6 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   filter: none;
   transform: translateY(0);
   background: #c9d9e3;
-  animation: upgradeReveal .32s steps(4, end);
 }
 
 .world[data-stage="2"] .office-worker--helper,
@@ -1641,6 +1641,15 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 
 .world[data-stage="6"] .world-status {
   background: var(--green-dark);
+}
+
+.world--stage-reveal[data-stage="2"] .room--helpers,
+.world--stage-reveal[data-stage="3"] .info-stand,
+.world--stage-reveal[data-stage="3"] .room--stand,
+.world--stage-reveal[data-stage="4"] .campaign-house,
+.world--stage-reveal[data-stage="4"] .room--office,
+.world--stage-reveal[data-stage="5"] .cityhall {
+  animation: upgradeReveal .32s steps(4, end);
 }
 
 .world--stage-reveal::after {
