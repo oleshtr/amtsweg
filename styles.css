@@ -1694,3 +1694,149 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   .room--office { top: 262px; }
   .control-deck--solo { grid-template-columns: 1fr; }
 }
+
+/* V0.2: station controls and production cues live in the scene. */
+.brand { padding-block: 12px; }
+.game-hud { grid-template-columns: minmax(170px, 1fr) 1fr 1fr 58px; }
+.game-hud--compact { grid-template-columns: 1fr 1fr; }
+.primary-actions { grid-template-columns: 1fr; }
+.control-deck { grid-template-columns: minmax(230px, 360px) 1fr; }
+.game-button { justify-content: center; min-height: 60px; }
+.world[data-stage="0"] .settings-button { display: none; }
+.world { transition: none; }
+.world--ready { transition: height .42s steps(5, end); }
+.manual-passer {
+  display: none; left: 54%; bottom: 70px; z-index: 8;
+}
+.world--flyer-cycle .manual-passer {
+  display: block; animation: manualApproach 1.8s steps(9, end) var(--flyer-delay, 0ms) both;
+}
+.world--flyer-cycle .candidate .actor__arm { animation: flyerHandover 1.8s steps(5, end) var(--flyer-delay, 0ms) both; }
+.world--flyer-cycle .candidate .hand-flyer { animation: flyerTransfer 1.8s steps(5, end) var(--flyer-delay, 0ms) both; }
+.world--flyer-cycle .manual-passer .actor__body { animation: passerReact 1.8s steps(3, end) var(--flyer-delay, 0ms) both; }
+.donation-point {
+  display: none; position: absolute; left: 61%; bottom: 72px; z-index: 7;
+  width: 42px; height: 43px; border: 4px solid var(--ink);
+  background: var(--yellow); text-align: center; font-size: 28px; font-weight: 900;
+}
+.donation-point::before { content: ""; position: absolute; top: -7px; left: 11px; width: 13px; height: 4px; background: var(--ink); }
+.donation-point__coin {
+  position: absolute; top: -30px; left: 9px; font-size: 16px; opacity: 0;
+}
+.world--coin .donation-point__coin { animation: coinDrop 1s steps(6, end); }
+.world[data-stage="1"] .donation-point,
+.world[data-stage="2"] .donation-point,
+.world[data-stage="3"] .donation-point,
+.world[data-stage="4"] .donation-point,
+.world[data-stage="5"] .donation-point,
+.world[data-stage="6"] .donation-point { display: block; }
+.station-build {
+  position: absolute; z-index: 20; bottom: 76px; width: 155px;
+}
+.station-build--helper { left: 49%; }
+.station-build--stand { left: 67%; }
+.station-build--office { left: 5%; }
+.station-build button, .station-control, .election-action {
+  width: 100%; cursor: pointer; border: 3px solid var(--ink); border-radius: 6px;
+  background: #fff1b9; color: var(--ink); box-shadow: 0 4px 0 var(--ink);
+  font-size: 10px; font-weight: 900; line-height: 1.25; padding: 7px;
+}
+.station-build strong { display: block; margin-top: 3px; font-size: 13px; }
+.station-control {
+  position: absolute; z-index: 5; right: 9px; bottom: 8px; width: 190px;
+  background: #fff8df; text-align: left;
+}
+.station-control > span, .station-control > small, .station-control > strong { display: block; }
+.station-control small { color: #486078; font-size: 9px; }
+.station-control strong { color: var(--blue-dark); font-size: 12px; }
+.station-control:disabled, .station-build button:disabled, .election-action:disabled { opacity: .65; cursor: not-allowed; }
+.station-control:hover:not(:disabled), .station-build button:hover:not(:disabled), .election-action:hover:not(:disabled) { background: #fff3a5; }
+.station-detail { display: none; position: absolute; z-index: 3; font-weight: 900; }
+.station-detail--extra-worker { left: 105px; bottom: 42px; font-size: 32px; color: var(--yellow); }
+.station-detail--materials { left: 12px; bottom: 70px; color: var(--red); }
+.station-detail--banner { left: 16px; top: 46px; color: var(--red); font-size: 10px; }
+.station-detail--desk { left: 110px; bottom: 70px; color: var(--blue); font-size: 32px; }
+.station-detail--second-worker { left: 146px; bottom: 70px; color: var(--orange); font-size: 25px; }
+.world[data-helper-tier="10"] .station-detail--extra-worker,
+.world[data-helper-tier="20"] .station-detail--extra-worker,
+.world[data-helper-tier="20"] .station-detail--materials,
+.world[data-stand-tier="5"] .station-detail--banner,
+.world[data-stand-tier="10"] .station-detail--banner,
+.world[data-stand-tier="20"] .station-detail--banner,
+.world[data-office-tier="5"] .station-detail--desk,
+.world[data-office-tier="10"] .station-detail--desk,
+.world[data-office-tier="20"] .station-detail--desk,
+.world[data-office-tier="10"] .station-detail--second-worker,
+.world[data-office-tier="20"] .station-detail--second-worker { display: block; }
+.world[data-helper-tier="5"] .room--helpers,
+.world[data-helper-tier="10"] .room--helpers,
+.world[data-helper-tier="20"] .room--helpers { background: #e1d9aa; }
+.world[data-stand-tier="10"] .room--stand,
+.world[data-stand-tier="20"] .room--stand { background: #d6e7b5; }
+.world[data-office-tier="20"] .room--office { background: #c5e4ef; }
+.world[data-helper-tier="10"] .helper--two,
+.world[data-helper-tier="20"] .helper--two { display: block; }
+.world[data-helper-tier="1"] .helper--two,
+.world[data-helper-tier="5"] .helper--two { display: none; }
+.stand-queue {
+  display: none; position: absolute; z-index: 7; left: 47%; bottom: 72px;
+  width: 65px; height: 20px;
+}
+.stand-queue i {
+  display: inline-block; width: 15px; height: 20px; margin-right: 3px;
+  border: 3px solid var(--ink); background: #f5cb88;
+}
+.world--stand-jam .stand-queue { display: block; }
+.world--stand-jam .room--stand .crate--two { box-shadow: -13px -10px 0 #a86f3f, -16px -13px 0 var(--ink); }
+.world--office-jam .cash-machine { box-shadow: -15px -7px 0 var(--yellow), -18px -10px 0 var(--ink); }
+.donor { display: none; left: 69%; bottom: 70px; }
+.world--coin .donor { display: block; animation: donorVisit 1s steps(6, end) both; }
+.world[data-stage="3"] .passer--two,
+.world[data-stage="4"] .passer--two,
+.world[data-stage="5"] .passer--two,
+.world[data-stage="6"] .passer--two { animation: standVisit 8s linear infinite; }
+.election-action { margin-top: 7px; background: #a7e5a7; }
+.chapter-progress { max-width: 520px; }
+@keyframes manualApproach {
+  0% { transform: translateX(130px) scale(.8); opacity: 0; }
+  35%, 70% { transform: translateX(0) scale(.8); opacity: 1; }
+  90%, 100% { transform: translateX(-65px) scale(.8); opacity: 0; }
+}
+@keyframes flyerHandover { 0%, 32% { transform: rotate(0); } 50%, 75% { transform: rotate(-45deg); } 100% { transform: rotate(0); } }
+@keyframes flyerTransfer { 0%, 48% { opacity: 1; } 55%, 100% { opacity: 0; } }
+@keyframes passerReact { 0%, 54% { background: var(--red); } 60%, 100% { background: var(--green); } }
+@keyframes coinDrop { 0%, 15% { opacity: 0; transform: translate(30px,-20px); } 30% { opacity: 1; } 90% { opacity: 1; transform: translate(0,20px); } 100% { opacity: 0; transform: translate(0,20px); } }
+@keyframes donorVisit { 0% { opacity: 0; transform: translateX(70px) scale(.8); } 35%,70% { opacity: 1; transform: translateX(0) scale(.8); } 100% { opacity: 0; transform: translateX(-45px) scale(.8); } }
+@keyframes standVisit { 0% { transform: translateX(0) scale(.8); } 35%,60% { transform: translateX(720px) scale(.8); } 100% { transform: translateX(1100px) scale(.8); } }
+@media (max-width: 900px) {
+  .game-hud { grid-template-columns: 1fr 1fr 50px; }
+  .game-hud--compact { grid-template-columns: 1fr 1fr; }
+  .brand { grid-column: 1 / -1; min-height: 56px; }
+  .control-deck { grid-template-columns: 1fr; }
+  .station-build--stand { left: 63%; }
+}
+@media (max-width: 650px) {
+  .game-hud { grid-template-columns: 1fr 1fr 44px; }
+  .game-hud--compact { grid-template-columns: 1fr 1fr; }
+  .brand { padding: 9px; }
+  .hud-stat { min-width: 0; }
+  .hud-stat__copy small { font-size: 7px; }
+  .hud-stat__copy strong { font-size: 16px; }
+  .station-build { width: 132px; }
+  .station-build--helper { left: 55%; }
+  .station-build--stand { left: 55%; }
+  .station-build--office { left: 5%; }
+  .station-control { width: min(160px, 66%); padding: 4px; font-size: 8px; }
+  .station-control strong { font-size: 10px; }
+  .manual-passer { left: 50%; }
+  .donation-point { left: 70%; }
+  .stand-queue { left: 36%; }
+  .world[data-stage="3"] .passer--two,
+  .world[data-stage="4"] .passer--two,
+  .world[data-stage="5"] .passer--two,
+  .world[data-stage="6"] .passer--two { animation-name: standVisitMobile; }
+  .world[data-stage="4"] .room--office,
+  .world[data-stage="5"] .room--office,
+  .world[data-stage="6"] .room--office { display: block; }
+}
+@keyframes standVisitMobile { 0% { transform: translateX(0) scale(.8); } 35%,60% { transform: translateX(230px) scale(.8); } 100% { transform: translateX(500px) scale(.8); } }

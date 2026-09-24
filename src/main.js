@@ -1,339 +1,210 @@
 'use strict';
 
 const Game = window.AmtswegGame;
+const $ = selector => document.querySelector(selector);
+const elements = {
+  scene: $('[data-scene]'), supporters: $('[data-supporters]'),
+  euros: $('[data-euros]'), cashHud: $('[data-euro-stat]'),
+  supportRate: $('[data-rate]'), cashRate: $('[data-cash-rate]'),
+  flyer: $('[data-action="flyer"]'), progress: $('[data-chapter-progress]'),
+  percent: $('[data-election-percent]'), bar: $('[data-election-bar]'),
+  electionMini: $('[data-election-mini]'), election: $('[data-action="election"]'),
+  electionCost: $('[data-election-cost]'), ending: $('[data-ending]'),
+  status: $('[data-status-copy]'), toast: $('[data-toast]'),
+  reset: $('[data-action="reset"]'), supporterHud: $('[data-supporter-stat]'),
+};
+const format = value => new Intl.NumberFormat('de-DE', { maximumFractionDigits: value < 100 ? 1 : 0 }).format(value);
+const cashFormat = value => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
 let state = loadState();
 let lastFrame = performance.now();
-let lastSaved = 0;
-let lastAutoBurst = 0;
-let lastRenderedStage = null;
-
-const els = {
-  supporters: document.querySelector('[data-supporters]'),
-  euros: document.querySelector('[data-euros]'),
-  euroStat: document.querySelector('[data-euro-stat]'),
-  supporterStat: document.querySelector('[data-supporter-stat]'),
-  gameHud: document.querySelector('.game-hud'),
-  rate: document.querySelector('[data-rate]'),
-  cashRate: document.querySelector('[data-cash-rate]'),
-  flyerButton: document.querySelector('[data-action="flyer"]'),
-  donateButton: document.querySelector('[data-action="donate"]'),
-  helperCard: document.querySelector('[data-card="helper"]'),
-  helperButton: document.querySelector('[data-action="helper"]'),
-  helperCount: document.querySelector('[data-helper-count]'),
-  helperCost: document.querySelector('[data-helper-cost]'),
-  standCard: document.querySelector('[data-card="stand"]'),
-  standButton: document.querySelector('[data-action="stand"]'),
-  officeCard: document.querySelector('[data-card="office"]'),
-  officeButton: document.querySelector('[data-action="office"]'),
-  electionCard: document.querySelector('[data-card="election"]'),
-  electionButton: document.querySelector('[data-action="election"]'),
-  electionProgress: document.querySelector('[data-election-progress]'),
-  electionPercent: document.querySelector('[data-election-percent]'),
-  electionBar: document.querySelector('[data-election-bar]'),
-  electionMini: document.querySelector('[data-election-mini]'),
-  chapterProgress: document.querySelector('[data-chapter-progress]'),
-  controlDeck: document.querySelector('[data-control-deck]'),
-  upgradeDock: document.querySelector('[data-upgrade-dock]'),
-  worldLevel: document.querySelector('[data-world-level]'),
-  statusCopy: document.querySelector('[data-status-copy]'),
-  toast: document.querySelector('[data-toast]'),
-  resetButton: document.querySelector('[data-action="reset"]'),
-  scene: document.querySelector('[data-scene]'),
-  candidate: document.querySelector('[data-candidate]'),
-  burstLayer: document.querySelector('[data-resource-burst-layer]'),
-  ending: document.querySelector('[data-ending]'),
-};
-
-function formatNumber(value) {
-  if (value >= 1000) {
-    return new Intl.NumberFormat('de-DE', {
-      maximumFractionDigits: 1,
-      notation: 'compact',
-    }).format(value);
-  }
-
-  return new Intl.NumberFormat('de-DE', {
-    maximumFractionDigits: value < 100 ? 1 : 0,
-  }).format(value);
-}
+let lastSave = lastFrame;
+let previousStage = null;
+let previousLevels = null;
+let lastCoin = 0;
 
 function loadState() {
   try {
-    const raw = localStorage.getItem(Game.CONFIG.saveKey);
-    return raw ? Game.normalizeState(JSON.parse(raw)) : Game.createInitialState();
+    const modern = localStorage.getItem(Game.CONFIG.saveKey);
+    if (modern) return Game.completeFlyer(Game.normalizeState(JSON.parse(modern)));
+    const legacy = localStorage.getItem(Game.CONFIG.legacySaveKey);
+    return legacy ? Game.completeFlyer(Game.normalizeState(JSON.parse(legacy))) : Game.createInitialState();
   } catch {
     return Game.createInitialState();
   }
 }
 
 function saveState() {
-  localStorage.setItem(Game.CONFIG.saveKey, JSON.stringify(state));
-  lastSaved = performance.now();
+  try {
+    localStorage.setItem(Game.CONFIG.saveKey, JSON.stringify(state));
+    lastSave = performance.now();
+  } catch {
+    // The game remains playable when storage is unavailable.
+  }
 }
 
-function notify(message) {
-  els.toast.textContent = message;
-  els.toast.classList.add('toast--visible');
-  clearTimeout(notify.timeout);
-  notify.timeout = setTimeout(() => els.toast.classList.remove('toast--visible'), 1900);
+function toast(message) {
+  elements.toast.textContent = message;
+  elements.toast.classList.add('toast--visible');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => elements.toast.classList.remove('toast--visible'), 2000);
 }
 
-function pulse(element) {
-  if (!element) return;
-  element.classList.remove('hud-stat--pulse');
-  void element.offsetWidth;
-  element.classList.add('hud-stat--pulse');
-  setTimeout(() => element.classList.remove('hud-stat--pulse'), 280);
+function flashScene() {
+  elements.scene.classList.remove('world--stage-reveal');
+  void elements.scene.offsetWidth;
+  elements.scene.classList.add('world--stage-reveal');
+  setTimeout(() => elements.scene.classList.remove('world--stage-reveal'), 700);
 }
 
-function animateCandidate() {
-  els.candidate.classList.remove('actor--action');
-  void els.candidate.offsetWidth;
-  els.candidate.classList.add('actor--action');
-  setTimeout(() => els.candidate.classList.remove('actor--action'), 270);
-}
-
-function spawnResource(text, type = 'supporter', options = {}) {
-  const pop = document.createElement('span');
-  pop.className = 'resource-pop';
-  if (type === 'cash') pop.classList.add('resource-pop--cash');
-  if (options.auto) pop.classList.add('resource-pop--auto');
-  pop.textContent = text;
-
-  const left = options.left ?? (type === 'cash' ? 69 : 43);
-  const top = options.top ?? (options.auto ? 39 : 34);
-  pop.style.left = `${left + (Math.random() * 8 - 4)}%`;
-  pop.style.top = `${top + (Math.random() * 5 - 2.5)}%`;
-
-  els.burstLayer.appendChild(pop);
-  pop.addEventListener('animationend', () => pop.remove(), { once: true });
-}
-
-function currentStatus(unlocked) {
-  if (state.electionFinished) return 'Geschafft: Deine erste Kommunalwahl ist beendet.';
-  if (state.officeOwned) return 'Das Ortsbüro arbeitet. Helfer und Spenden laufen automatisch.';
-  if (state.standOwned) return 'Der Infostand läuft. Auf der Straße wird deine Kampagne sichtbar.';
-  if (state.helpers > 0) return 'Dein Helferteam verteilt jetzt automatisch Flyer.';
-  if (unlocked.donations) return 'Erste Leute kennen dich. Jetzt kannst du Spenden sammeln.';
-  return 'Irgendwo in Deutschland. Noch kennt dich fast niemand.';
-}
-
-function chapterPercent() {
-  const supporterPart = Math.min(1, state.supporters / Game.CONFIG.election.targetSupporters);
-  const cashPart = Math.min(1, state.euros / Game.CONFIG.election.entryCost);
-  return Math.min(100, Math.floor((supporterPart * 0.7 + cashPart * 0.3) * 100));
-}
-
-function stageRevealText(stage) {
-  return {
-    1: 'SPENDEN FREIGESCHALTET',
-    2: 'ERSTER HELFER',
-    3: 'INFOSTAND AUFGEBAUT',
-    4: 'ORTSBÜRO ERÖFFNET',
-    5: 'KOMMUNALWAHL IN SICHT',
-    6: 'KAPITEL GESCHAFFT',
-  }[stage] || '';
-}
-
-function celebrateVictory() {
-  const amount = 36;
-  for (let i = 0; i < amount; i += 1) {
+function confetti() {
+  const layer = $('[data-resource-burst-layer]');
+  for (let i = 0; i < 20; i += 1) {
     const bit = document.createElement('span');
     bit.className = 'confetti-bit';
-    bit.style.left = `${Math.random() * 100}%`;
-    bit.style.animationDelay = `${Math.random() * 0.55}s`;
-    bit.style.animationDuration = `${1.8 + Math.random() * 1.4}s`;
-    bit.style.setProperty('--drift', `${Math.round(Math.random() * 120 - 60)}px`);
-    els.burstLayer.appendChild(bit);
+    bit.style.left = Math.random() * 100 + '%';
+    bit.style.animationDelay = Math.random() * 0.5 + 's';
+    bit.style.setProperty('--drift', Math.round(Math.random() * 120 - 60) + 'px');
+    layer.appendChild(bit);
     bit.addEventListener('animationend', () => bit.remove(), { once: true });
   }
 }
 
-function updateScene(unlocked) {
-  const stage = Game.worldStage(state);
-  const previousStage = lastRenderedStage;
-
-  els.scene.dataset.stage = String(stage);
-  els.worldLevel.textContent = Math.max(1, stage);
-  els.statusCopy.textContent = currentStatus(unlocked);
-
-  if (previousStage !== null && stage > previousStage) {
-    els.scene.classList.remove('world--stage-reveal');
-    void els.scene.offsetWidth;
-    els.scene.classList.add('world--stage-reveal');
-
-    const label = stageRevealText(stage);
-    if (label) spawnResource(label, stage === 4 ? 'cash' : 'supporter', { left: 50, top: 18 });
-
-    if (stage === 6) celebrateVictory();
-    setTimeout(() => els.scene.classList.remove('world--stage-reveal'), 700);
-  }
-
-  lastRenderedStage = stage;
+function renderStation(name, level, unlocked) {
+  const build = $('[data-build="' + name + '"]');
+  const buy = $('[data-action="' + name + '"]');
+  const upgrade = $('[data-upgrade="' + name + '"]');
+  build.hidden = !unlocked || level > 0 || state.electionFinished;
+  buy.disabled = !Game.canBuy(state, name);
+  $('[data-' + name + '-cost]').textContent = Game.stationCost(name, 0) + ' €';
+  upgrade.disabled = !Game.canBuy(state, name);
+  $('[data-' + name + '-level]').textContent = level;
+  $('[data-' + name + '-upgrade-cost]').textContent = Game.stationCost(name, level);
 }
 
 function render() {
   const unlocked = Game.unlocks(state);
-  const helperPrice = Game.helperCost(state);
-  const supportRate = Game.supporterRate(state);
-  const cashPerSecond = Game.euroRate(state);
-  const percent = chapterPercent();
   const stage = Game.worldStage(state);
-
-  els.supporters.textContent = formatNumber(state.supporters);
-  els.euros.textContent = formatNumber(state.euros);
-  els.rate.textContent = supportRate > 0 ? `+${formatNumber(supportRate)} / Sek.` : '';
-  els.cashRate.textContent = cashPerSecond > 0 ? `+${formatNumber(cashPerSecond)} € / Sek.` : '';
-  els.euroStat.hidden = !unlocked.donations;
-  els.gameHud.classList.toggle('game-hud--compact', !unlocked.donations);
-
-  els.flyerButton.querySelector('small').textContent = `+${Game.flyerGain(state)} Unterstützer`;
-  els.donateButton.hidden = !unlocked.donations;
-  els.donateButton.disabled = state.electionFinished;
-  els.flyerButton.disabled = state.electionFinished;
-
-  els.helperCard.hidden = !unlocked.helper;
-  els.helperCount.textContent = state.helpers;
-  els.helperCost.textContent = helperPrice;
-  els.helperButton.disabled = !Game.canBuyHelper(state) || state.electionFinished;
-
-  els.standCard.hidden = !unlocked.stand || state.standOwned;
-  els.standButton.disabled = !Game.canBuyStand(state) || state.electionFinished;
-
-  els.officeCard.hidden = !unlocked.office || state.officeOwned;
-  els.officeButton.disabled = !Game.canBuyOffice(state) || state.electionFinished;
-
-  els.electionCard.hidden = stage < 5 || state.electionFinished;
-  els.chapterProgress.hidden = stage < 5;
-  els.controlDeck.classList.toggle('control-deck--solo', stage < 5);
-  els.upgradeDock.hidden = !unlocked.helper && !unlocked.stand && !unlocked.office && stage < 5;
-
-  const supporterNeed = Math.max(0, Math.ceil(Game.CONFIG.election.targetSupporters - state.supporters));
-  const euroNeed = Math.max(0, Math.ceil(Game.CONFIG.election.entryCost - state.euros));
-  const needs = [];
-  if (supporterNeed) needs.push(`${supporterNeed} Unterstützer`);
-  if (euroNeed) needs.push(`${euroNeed} €`);
-  els.electionProgress.textContent = needs.length
-    ? `Noch nötig: ${needs.join(' · ')}`
-    : 'Die Kampagne ist bereit.';
-  els.electionButton.disabled = !Game.canRunElection(state);
-
-  els.electionPercent.textContent = percent;
-  els.electionBar.style.width = `${percent}%`;
-  if (state.electionFinished) {
-    els.electionMini.textContent = 'Kapitelziel erreicht.';
-  } else if (supporterNeed > 0) {
-    els.electionMini.textContent = `Noch ${supporterNeed} Unterstützer bis zur Wahlreife.`;
-  } else if (euroNeed > 0) {
-    els.electionMini.textContent = `Unterstützerziel erreicht · noch ${euroNeed} € Wahlkampfkasse.`;
-  } else {
-    els.electionMini.textContent = 'Bereit für die Kommunalwahl.';
+  const bottleneck = Game.bottlenecks(state);
+  const levels = [state.helperLevel, state.standLevel, state.officeLevel];
+  elements.scene.dataset.stage = String(stage);
+  elements.scene.dataset.helperTier = state.helperLevel >= 20 ? '20' : state.helperLevel >= 10 ? '10' : state.helperLevel >= 5 ? '5' : '1';
+  elements.scene.dataset.standTier = state.standLevel >= 20 ? '20' : state.standLevel >= 10 ? '10' : state.standLevel >= 5 ? '5' : '1';
+  elements.scene.dataset.officeTier = state.officeLevel >= 20 ? '20' : state.officeLevel >= 10 ? '10' : state.officeLevel >= 5 ? '5' : '1';
+  elements.scene.classList.toggle('world--stand-jam', bottleneck.stand);
+  elements.scene.classList.toggle('world--office-jam', bottleneck.office);
+  elements.scene.classList.toggle('world--flyer-cycle', Boolean(state.flyerEndsAt));
+  elements.supporters.textContent = format(state.supporters);
+  elements.euros.textContent = cashFormat(state.euros);
+  elements.supportRate.textContent = state.helperLevel ? '+' + format(Game.supporterRate(state) * 60) + '/min' : '';
+  elements.cashRate.textContent = unlocked.cash ? '+' + cashFormat(Game.euroRate(state)) + ' €/s' : '';
+  elements.cashHud.hidden = !unlocked.cash;
+  $('.game-hud').classList.toggle('game-hud--compact', !unlocked.cash);
+  elements.reset.hidden = stage === 0;
+  elements.flyer.disabled = Boolean(state.flyerEndsAt) || state.electionFinished;
+  elements.flyer.querySelector('small').textContent = state.flyerEndsAt ? 'Übergabe läuft …' : '+1 Unterstützer';
+  renderStation('helper', state.helperLevel, unlocked.helper);
+  renderStation('stand', state.standLevel, unlocked.stand);
+  renderStation('office', state.officeLevel, unlocked.office);
+  $('[data-helper-rate]').textContent = format(Game.helperRate(state) * 60) + ' Kontakte/min';
+  $('[data-stand-rate]').textContent = format(Game.standCapacity(state) * 60) + ' Kapazität/min';
+  $('[data-office-rate]').textContent = cashFormat(Game.euroRate(state)) + ' €/s';
+  $('[data-helper-count]').textContent = state.helperLevel;
+  elements.progress.hidden = stage < 5;
+  const percent = Math.min(100, Math.floor(100 * Math.min(
+    state.supporters / Game.CONFIG.election.targetSupporters,
+    state.euros / Game.CONFIG.election.entryCost,
+  )));
+  elements.percent.textContent = percent;
+  elements.bar.style.width = percent + '%';
+  elements.electionCost.textContent = Game.CONFIG.election.entryCost;
+  elements.election.disabled = !Game.canRunElection(state);
+  elements.electionMini.textContent = state.electionFinished ? 'Kapitelziel erreicht.' :
+    'Noch ' + Math.max(0, Math.ceil(Game.CONFIG.election.targetSupporters - state.supporters)) +
+    ' Unterstützer und ' + Math.max(0, Math.ceil(Game.CONFIG.election.entryCost - state.euros)) + ' €';
+  elements.ending.hidden = !state.electionFinished;
+  elements.status.textContent = state.electionFinished ? 'Kommunalwahl geschafft!' :
+    stage >= 5 ? 'NÄCHSTES ZIEL: KOMMUNALWAHL' :
+    bottleneck.stand ? 'Passanten warten am Infostand.' :
+    bottleneck.office ? 'Im Ortsbüro stauen sich Spenden.' :
+    stage >= 4 ? 'Das Ortsbüro organisiert die Spenden.' :
+    stage >= 3 ? 'Der Infostand verarbeitet Kontakte.' :
+    stage >= 2 ? 'Dein Helferteam verteilt Flyer.' :
+    stage >= 1 ? 'Die Wahlkampfkasse füllt sich automatisch.' : '';
+  if (previousStage !== null && stage > previousStage) {
+    flashScene();
+    if (stage === 6) confetti();
+  } else if (previousLevels && levels.some((value, i) => value > previousLevels[i])) {
+    flashScene();
   }
-
-  els.ending.hidden = !state.electionFinished;
-  updateScene(unlocked);
+  previousStage = stage;
+  previousLevels = levels;
 }
 
-function apply(action, message) {
-  const before = JSON.stringify(state);
-  state = action(state);
-  const changed = JSON.stringify(state) !== before;
-  if (changed && message) notify(message);
+function purchase(name) {
+  const before = state[name + 'Level'];
+  state = Game.buyStation(state, name);
+  if (state[name + 'Level'] > before) {
+    render();
+    saveState();
+    toast((name === 'helper' ? 'Helferteam' : name === 'stand' ? 'Infostand' : 'Ortsbüro') +
+      ' · Level ' + state[name + 'Level']);
+  }
+}
+
+elements.flyer.addEventListener('click', () => {
+  if (state.flyerEndsAt || state.electionFinished) return;
+  elements.scene.style.setProperty('--flyer-delay', '0ms');
+  state = Game.startFlyer(state);
   render();
   saveState();
-  return changed;
+});
+for (const name of ['helper', 'stand', 'office']) {
+  $('[data-action="' + name + '"]').addEventListener('click', () => purchase(name));
+  $('[data-upgrade="' + name + '"]').addEventListener('click', () => purchase(name));
 }
-
-els.flyerButton.addEventListener('click', () => {
-  const before = state.supporters;
-  if (!apply(Game.distributeFlyer)) return;
-
-  const gained = Math.max(0, state.supporters - before);
-  spawnResource(`+${formatNumber(gained)} ★`, 'supporter', { left: 40, top: 30 });
-  pulse(els.supporterStat);
-  animateCandidate();
+elements.election.addEventListener('click', () => {
+  if (!Game.canRunElection(state)) return;
+  state = Game.runElection(state);
+  render();
+  saveState();
+  toast('Kommunalwahl geschafft!');
 });
-
-els.donateButton.addEventListener('click', () => {
-  const before = state.euros;
-  if (!apply(Game.collectDonation)) return;
-
-  const gained = Math.max(0, state.euros - before);
-  spawnResource(`+${formatNumber(gained)} €`, 'cash', { left: 62, top: 31 });
-  pulse(els.euroStat);
-});
-
-els.helperButton.addEventListener('click', () => {
-  if (apply(Game.buyHelper, 'Ein Wahlkampfhelfer ist dabei.')) {
-    spawnResource('HELFER +1', 'supporter', { left: 49, top: 48 });
-  }
-});
-
-els.standButton.addEventListener('click', () => {
-  if (apply(Game.buyStand, 'Der Infostand steht.')) {
-    spawnResource('INFOSTAND!', 'supporter', { left: 60, top: 23 });
-  }
-});
-
-els.officeButton.addEventListener('click', () => {
-  if (apply(Game.buyOffice, 'Das Ortsbüro ist eröffnet.')) {
-    spawnResource('ORTSBÜRO!', 'cash', { left: 75, top: 55 });
-  }
-});
-
-els.electionButton.addEventListener('click', () => {
-  if (apply(Game.runElection, 'Kommunalwahl geschafft!')) {
-    spawnResource('KAPITEL GESCHAFFT', 'supporter', { left: 78, top: 22 });
-  }
-});
-
-els.resetButton.addEventListener('click', () => {
+elements.reset.addEventListener('click', () => {
   if (!window.confirm('Spielstand wirklich zurücksetzen?')) return;
   localStorage.removeItem(Game.CONFIG.saveKey);
+  localStorage.removeItem(Game.CONFIG.legacySaveKey);
   state = Game.createInitialState();
+  previousStage = null;
+  previousLevels = null;
   render();
-  notify('Neuer Spielstand gestartet.');
+  saveState();
+  toast('Neuer Spielstand gestartet.');
 });
 
-function maybeShowAutoBurst(now) {
-  if (now - lastAutoBurst < 1350 || state.electionFinished) return;
-
-  const supporterRate = Game.supporterRate(state);
-  const cashPerSecond = Game.euroRate(state);
-
-  if (supporterRate > 0) {
-    spawnResource(`+${formatNumber(supporterRate)} ★`, 'supporter', {
-      left: state.standOwned ? 55 : 47,
-      top: state.officeOwned ? 55 : 38,
-      auto: true,
-    });
-  }
-
-  if (cashPerSecond > 0) {
-    spawnResource(`+${formatNumber(cashPerSecond)} €`, 'cash', {
-      left: 75,
-      top: 60,
-      auto: true,
-    });
-  }
-
-  lastAutoBurst = now;
-}
-
-function loop(now) {
-  const delta = Math.min((now - lastFrame) / 1000, 1);
+function frame(now) {
+  const delta = Math.min(1, Math.max(0, (now - lastFrame) / 1000));
   lastFrame = now;
-
-  if (!state.electionFinished && Game.supporterRate(state) + Game.euroRate(state) > 0) {
+  const beforeSupporters = state.supporters;
+  const beforeFlyer = state.flyerEndsAt;
+  if (!state.electionFinished) {
     state = Game.tick(state, delta);
-    render();
-    maybeShowAutoBurst(now);
+    if (state.flyerEndsAt !== beforeFlyer || state.supporters !== beforeSupporters || Game.euroRate(state)) render();
   }
-
-  if (now - lastSaved > 3000) saveState();
-  requestAnimationFrame(loop);
+  if (Game.euroRate(state) && now - lastCoin > 5000) {
+    elements.scene.classList.remove('world--coin');
+    void elements.scene.offsetWidth;
+    elements.scene.classList.add('world--coin');
+    lastCoin = now;
+  }
+  if (now - lastSave > Game.CONFIG.saveMs) saveState();
+  requestAnimationFrame(frame);
 }
 
+if (state.flyerEndsAt) {
+  const elapsed = Math.max(0, Game.CONFIG.flyerDurationMs - (state.flyerEndsAt - Date.now()));
+  elements.scene.style.setProperty('--flyer-delay', '-' + elapsed + 'ms');
+}
 render();
-requestAnimationFrame(loop);
+requestAnimationFrame(() => elements.scene.classList.add('world--ready'));
+requestAnimationFrame(frame);
 window.addEventListener('beforeunload', saveState);

@@ -1,10 +1,15 @@
 {
   "name": "amtsweg",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "AMTSWEG – ein kleines browserbasiertes Pixel-Art Idle-Game über eine fiktionale politische Karriere in Deutschland.",
   "scripts": {
     "check": "node --check src/game.js && node --check src/main.js",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "balance": "node scripts/balance.cjs",
+    "browser:qa": "node scripts/browser-qa.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
   }
 }

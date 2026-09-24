@@ -6,216 +6,201 @@
   'use strict';
 
   const CONFIG = Object.freeze({
-    saveKey: 'amtsweg-v0.1-save',
-    tickMs: 250,
-    flyerSupporters: 1,
-    donationUnlockSupporters: 10,
-    donationClickEuros: 2,
+    saveKey: 'amtsweg-v0.2-save', legacySaveKey: 'amtsweg-v0.1-save',
+    tickMs: 250, saveMs: 3000, flyerDurationMs: 1800, flyerSupporters: 1,
+    cashUnlockSupporters: 50, cashBasePerSecond: 0.06, cashPerSupporterPerSecond: 0.0015,
     helper: Object.freeze({
-      unlockEuros: 12,
-      baseCost: 20,
-      costGrowth: 1.55,
-      supportersPerSecond: 0.8,
+      buildCost: 45, upgradeBase: 12, upgradeGrowth: 1.32,
+      basePerSecond: 0.25, levelBonus: 0.16, milestone5Multiplier: 1.4,
+      milestones: Object.freeze([1, 5, 10, 20]),
     }),
     stand: Object.freeze({
-      unlockSupporters: 35,
-      cost: 55,
-      supportersPerSecond: 2.2,
-      flyerBonus: 1,
+      unlockHelperLevel: 5, unlockSupporters: 150, buildCost: 110,
+      upgradeBase: 25, upgradeGrowth: 1.18, baseCapacityPerSecond: 0.5,
+      capacityPerLevel: 0.11, outputMultiplier: 1.3, multiplierPerLevel: 0.018,
+      milestones: Object.freeze([1, 5, 10, 20]),
     }),
     office: Object.freeze({
-      unlockSupporters: 110,
-      cost: 140,
-      supportersPerSecond: 4.5,
-      eurosPerSecond: 1.2,
+      unlockStandLevel: 10, unlockSupporters: 350, buildCost: 350,
+      upgradeBase: 85, upgradeGrowth: 1.27, fundraisingMultiplier: 1.8,
+      multiplierPerLevel: 0.1, baseCapacityPerSecond: 1.15, capacityPerLevel: 0.15,
+      milestones: Object.freeze([1, 5, 10, 20]),
     }),
     election: Object.freeze({
-      unlockSupporters: 280,
-      entryCost: 180,
-      targetSupporters: 350,
+      revealOfficeLevel: 5, revealSupporters: 650,
+      targetSupporters: 1300, entryCost: 1100,
     }),
   });
 
-  function round(value, places = 2) {
-    const factor = 10 ** places;
-    return Math.round((value + Number.EPSILON) * factor) / factor;
+  const finite = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+  const nonnegative = value => Math.max(0, finite(value));
+  const money = value => Math.round((value + Number.EPSILON) * 100) / 100;
+  const level = value => Math.min(1000, Math.floor(nonnegative(value)));
+
+  function createInitialState(now = Date.now()) {
+    return { supporters: 0, euros: 0, helperLevel: 0, standLevel: 0, officeLevel: 0,
+      flyerEndsAt: 0, electionFinished: false, startedAt: now, lastUpdatedAt: now };
   }
 
-  function createInitialState() {
-    return {
-      supporters: 0,
-      euros: 0,
-      helpers: 0,
-      standOwned: false,
-      officeOwned: false,
-      electionFinished: false,
-      startedAt: Date.now(),
-      lastUpdatedAt: Date.now(),
-    };
-  }
-
-  function normalizeState(input) {
-    const base = createInitialState();
+  function normalizeState(input, now = Date.now()) {
     const source = input && typeof input === 'object' ? input : {};
-    return {
-      supporters: Math.max(0, Number(source.supporters) || 0),
-      euros: Math.max(0, Number(source.euros) || 0),
-      helpers: Math.max(0, Math.floor(Number(source.helpers) || 0)),
-      standOwned: Boolean(source.standOwned),
-      officeOwned: Boolean(source.officeOwned),
-      electionFinished: Boolean(source.electionFinished),
-      startedAt: Number(source.startedAt) || base.startedAt,
-      lastUpdatedAt: Number(source.lastUpdatedAt) || base.lastUpdatedAt,
-    };
+    const helperLevel = level(source.helperLevel ?? source.helpers);
+    const standLevel = level(source.standLevel ?? (source.standOwned ? 1 : 0));
+    const officeLevel = level(source.officeLevel ?? (source.officeOwned ? 1 : 0));
+    // A V0.1 save may have skipped gates. Preserve resources and restore the chain.
+    const safeStand = helperLevel >= CONFIG.stand.unlockHelperLevel ? standLevel : 0;
+    const safeOffice = safeStand >= CONFIG.office.unlockStandLevel ? officeLevel : 0;
+    const supporters = nonnegative(source.supporters);
+    const finished = Boolean(source.electionFinished) &&
+      safeOffice >= CONFIG.election.revealOfficeLevel &&
+      supporters >= CONFIG.election.targetSupporters;
+    return { supporters, euros: nonnegative(source.euros), helperLevel,
+      standLevel: safeStand, officeLevel: safeOffice,
+      flyerEndsAt: nonnegative(source.flyerEndsAt), electionFinished: finished,
+      startedAt: nonnegative(source.startedAt) || now,
+      lastUpdatedAt: nonnegative(source.lastUpdatedAt) || now };
   }
 
-  function helperCost(state) {
-    return Math.round(CONFIG.helper.baseCost * CONFIG.helper.costGrowth ** state.helpers);
+  function stationCost(station, currentLevel) {
+    const settings = CONFIG[station];
+    if (!settings || !Object.hasOwn(settings, 'buildCost')) return Infinity;
+    return currentLevel === 0 ? settings.buildCost :
+      Math.ceil(settings.upgradeBase * settings.upgradeGrowth ** currentLevel);
   }
 
-  function flyerGain(state) {
-    return CONFIG.flyerSupporters + (state.standOwned ? CONFIG.stand.flyerBonus : 0);
+  function helperRate(state) {
+    const n = state.helperLevel;
+    return n ? CONFIG.helper.basePerSecond * (1 + (n - 1) * CONFIG.helper.levelBonus) *
+      (n >= 5 ? CONFIG.helper.milestone5Multiplier : 1) : 0;
+  }
+
+  function standCapacity(state) {
+    return state.standLevel ? CONFIG.stand.baseCapacityPerSecond +
+      (state.standLevel - 1) * CONFIG.stand.capacityPerLevel : Infinity;
+  }
+
+  function throughput(state) {
+    return Math.min(helperRate(state), standCapacity(state));
   }
 
   function supporterRate(state) {
-    return round(
-      state.helpers * CONFIG.helper.supportersPerSecond +
-        (state.standOwned ? CONFIG.stand.supportersPerSecond : 0) +
-        (state.officeOwned ? CONFIG.office.supportersPerSecond : 0),
-      3,
-    );
+    if (!state.helperLevel) return 0;
+    const multiplier = state.standLevel ? CONFIG.stand.outputMultiplier +
+      (state.standLevel - 1) * CONFIG.stand.multiplierPerLevel : 1;
+    return throughput(state) * multiplier;
+  }
+
+  function rawCashRate(state) {
+    if (state.supporters < CONFIG.cashUnlockSupporters) return 0;
+    return CONFIG.cashBasePerSecond + state.supporters * CONFIG.cashPerSupporterPerSecond;
   }
 
   function euroRate(state) {
-    return state.officeOwned ? CONFIG.office.eurosPerSecond : 0;
+    const raw = rawCashRate(state);
+    if (!state.officeLevel) return raw;
+    const multiplier = CONFIG.office.fundraisingMultiplier +
+      (state.officeLevel - 1) * CONFIG.office.multiplierPerLevel;
+    const capacity = CONFIG.office.baseCapacityPerSecond +
+      (state.officeLevel - 1) * CONFIG.office.capacityPerLevel;
+    return Math.min(raw * multiplier, capacity);
+  }
+
+  function bottlenecks(state) {
+    const stand = state.standLevel > 0 && helperRate(state) > standCapacity(state) + 0.001;
+    const office = state.officeLevel > 0 && rawCashRate(state) *
+      (CONFIG.office.fundraisingMultiplier + (state.officeLevel - 1) * CONFIG.office.multiplierPerLevel) >
+      CONFIG.office.baseCapacityPerSecond + (state.officeLevel - 1) * CONFIG.office.capacityPerLevel + 0.001;
+    return { stand, office };
   }
 
   function unlocks(state) {
     return {
-      donations: state.supporters >= CONFIG.donationUnlockSupporters || state.helpers > 0 || state.standOwned || state.officeOwned,
-      helper: state.euros >= CONFIG.helper.unlockEuros || state.helpers > 0 || state.standOwned || state.officeOwned,
-      stand: state.supporters >= CONFIG.stand.unlockSupporters || state.standOwned || state.officeOwned,
-      office: state.supporters >= CONFIG.office.unlockSupporters || state.officeOwned,
-      election:
-        (state.officeOwned && state.supporters >= CONFIG.election.unlockSupporters) ||
-        state.electionFinished,
+      cash: state.supporters >= CONFIG.cashUnlockSupporters || state.helperLevel > 0,
+      helper: state.supporters >= CONFIG.cashUnlockSupporters || state.helperLevel > 0,
+      stand: state.helperLevel >= CONFIG.stand.unlockHelperLevel &&
+        state.supporters >= CONFIG.stand.unlockSupporters,
+      office: state.standLevel >= CONFIG.office.unlockStandLevel &&
+        state.supporters >= CONFIG.office.unlockSupporters,
+      election: state.officeLevel >= CONFIG.election.revealOfficeLevel &&
+        state.supporters >= CONFIG.election.revealSupporters,
     };
   }
 
   function worldStage(state) {
-    const next = normalizeState(state);
-    if (next.electionFinished) return 6;
-    if (unlocks(next).election) return 5;
-    if (next.officeOwned) return 4;
-    if (next.standOwned) return 3;
-    if (next.helpers > 0) return 2;
-    if (unlocks(next).donations) return 1;
+    if (state.electionFinished) return 6;
+    if (unlocks(state).election) return 5;
+    if (state.officeLevel) return 4;
+    if (state.standLevel) return 3;
+    if (state.helperLevel) return 2;
+    if (unlocks(state).cash) return 1;
     return 0;
   }
 
-  function canBuyHelper(state) {
-    return state.euros >= helperCost(state);
+  function canBuy(state, station) {
+    if (state.electionFinished || !['helper', 'stand', 'office'].includes(station)) return false;
+    return unlocks(state)[station] &&
+      state.euros >= stationCost(station, state[station + 'Level']);
   }
 
-  function canBuyStand(state) {
-    return !state.standOwned && state.euros >= CONFIG.stand.cost;
+  function buyStation(state, station, now = Date.now()) {
+    const next = normalizeState(state, now);
+    if (!canBuy(next, station)) return next;
+    const key = station + 'Level';
+    next.euros = money(next.euros - stationCost(station, next[key]));
+    next[key] += 1;
+    next.lastUpdatedAt = now;
+    return next;
   }
 
-  function canBuyOffice(state) {
-    return !state.officeOwned && state.euros >= CONFIG.office.cost;
+  function startFlyer(state, now = Date.now()) {
+    const next = normalizeState(state, now);
+    if (!next.electionFinished && !next.flyerEndsAt) {
+      next.flyerEndsAt = now + CONFIG.flyerDurationMs;
+      next.lastUpdatedAt = now;
+    }
+    return next;
+  }
+
+  function completeFlyer(state, now = Date.now()) {
+    const next = normalizeState(state, now);
+    if (!next.electionFinished && next.flyerEndsAt && now >= next.flyerEndsAt) {
+      next.supporters += CONFIG.flyerSupporters;
+      next.flyerEndsAt = 0;
+      next.lastUpdatedAt = now;
+    }
+    return next;
+  }
+
+  function tick(state, deltaSeconds, now = Date.now()) {
+    const next = normalizeState(state, now);
+    if (next.electionFinished) return next;
+    const seconds = Math.min(1, nonnegative(deltaSeconds));
+    const priorSupporters = next.supporters;
+    next.supporters += supporterRate(next) * seconds;
+    next.euros = next.euros +
+      (euroRate({ ...next, supporters: priorSupporters }) + euroRate(next)) * seconds / 2;
+    next.lastUpdatedAt = now;
+    return completeFlyer(next, now);
   }
 
   function canRunElection(state) {
-    return (
-      !state.electionFinished &&
-      state.officeOwned &&
+    return !state.electionFinished && unlocks(state).election &&
       state.supporters >= CONFIG.election.targetSupporters &&
-      state.euros >= CONFIG.election.entryCost
-    );
+      state.euros >= CONFIG.election.entryCost;
   }
 
-  function distributeFlyer(state) {
-    const next = normalizeState(state);
-    next.supporters = round(next.supporters + flyerGain(next));
-    next.lastUpdatedAt = Date.now();
-    return next;
-  }
-
-  function collectDonation(state) {
-    const next = normalizeState(state);
-    if (!unlocks(next).donations) return next;
-    next.euros = round(next.euros + CONFIG.donationClickEuros);
-    next.lastUpdatedAt = Date.now();
-    return next;
-  }
-
-  function buyHelper(state) {
-    const next = normalizeState(state);
-    const cost = helperCost(next);
-    if (next.euros < cost) return next;
-    next.euros = round(next.euros - cost);
-    next.helpers += 1;
-    next.lastUpdatedAt = Date.now();
-    return next;
-  }
-
-  function buyStand(state) {
-    const next = normalizeState(state);
-    if (next.standOwned || next.euros < CONFIG.stand.cost) return next;
-    next.euros = round(next.euros - CONFIG.stand.cost);
-    next.standOwned = true;
-    next.lastUpdatedAt = Date.now();
-    return next;
-  }
-
-  function buyOffice(state) {
-    const next = normalizeState(state);
-    if (next.officeOwned || next.euros < CONFIG.office.cost) return next;
-    next.euros = round(next.euros - CONFIG.office.cost);
-    next.officeOwned = true;
-    next.lastUpdatedAt = Date.now();
-    return next;
-  }
-
-  function runElection(state) {
-    const next = normalizeState(state);
+  function runElection(state, now = Date.now()) {
+    const next = normalizeState(state, now);
     if (!canRunElection(next)) return next;
-    next.euros = round(next.euros - CONFIG.election.entryCost);
+    next.euros = money(next.euros - CONFIG.election.entryCost);
     next.electionFinished = true;
-    next.lastUpdatedAt = Date.now();
+    next.flyerEndsAt = 0;
+    next.lastUpdatedAt = now;
     return next;
   }
 
-  function tick(state, deltaSeconds) {
-    const next = normalizeState(state);
-    if (next.electionFinished) return next;
-    const seconds = Math.max(0, Number(deltaSeconds) || 0);
-    next.supporters = round(next.supporters + supporterRate(next) * seconds);
-    next.euros = round(next.euros + euroRate(next) * seconds);
-    next.lastUpdatedAt = Date.now();
-    return next;
-  }
-
-  return {
-    CONFIG,
-    createInitialState,
-    normalizeState,
-    helperCost,
-    flyerGain,
-    supporterRate,
-    euroRate,
-    unlocks,
-    worldStage,
-    canBuyHelper,
-    canBuyStand,
-    canBuyOffice,
-    canRunElection,
-    distributeFlyer,
-    collectDonation,
-    buyHelper,
-    buyStand,
-    buyOffice,
-    runElection,
-    tick,
-  };
+  return { CONFIG, createInitialState, normalizeState, stationCost, helperRate,
+    standCapacity, throughput, supporterRate, rawCashRate, euroRate, bottlenecks,
+    unlocks, worldStage, canBuy, buyStation, startFlyer, completeFlyer, tick,
+    canRunElection, runElection };
 });

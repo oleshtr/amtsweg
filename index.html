@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#56a6db" />
     <title>AMTSWEG</title>
     <meta name="description" content="AMTSWEG – vom politischen Nobody zur ersten Kommunalwahl." />
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -13,9 +14,7 @@
       <section class="game-frame">
         <header class="game-hud">
           <div class="brand">
-            <span class="brand__chapter">KAPITEL 01</span>
             <strong class="brand__name">AMTSWEG</strong>
-            <span class="brand__place">KOMMUNE</span>
           </div>
 
           <div class="hud-stat hud-stat--supporters" data-supporter-stat>
@@ -79,6 +78,13 @@
               <span></span><span></span><span></span>
               <b>FLYER</b>
             </div>
+            <div class="donation-point" aria-hidden="true"><span class="donation-point__coin">€</span><b>€</b></div>
+            <div class="donor actor actor--small" aria-hidden="true">
+              <div class="actor__hair"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div>
+            </div>
+            <div class="manual-passer actor actor--small" aria-hidden="true">
+              <div class="actor__hair"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div>
+            </div>
 
             <div class="candidate actor" data-candidate aria-hidden="true">
               <div class="actor__hair"></div>
@@ -110,6 +116,16 @@
               <div class="info-stand__table"></div>
               <div class="info-stand__box">FLYER</div>
               <div class="info-stand__flag"></div>
+            </div>
+            <div class="stand-queue" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="station-build station-build--helper" data-build="helper" hidden>
+              <button data-action="helper" type="button">HELFER HOLEN <strong data-helper-cost></strong></button>
+            </div>
+            <div class="station-build station-build--stand" data-build="stand" hidden>
+              <button data-action="stand" type="button">INFOSTAND BAUEN <strong data-stand-cost></strong></button>
+            </div>
+            <div class="station-build station-build--office" data-build="office" hidden>
+              <button data-action="office" type="button">ORTSBÜRO BAUEN <strong data-office-cost></strong></button>
             </div>
 
             <div class="surface-strip"></div>
@@ -145,6 +161,9 @@
                 <small>HELFER</small>
                 <strong data-helper-count>0</strong>
               </div>
+              <div class="station-detail station-detail--extra-worker" aria-hidden="true">✦</div>
+              <div class="station-detail station-detail--materials" aria-hidden="true">▰ ▰ ▰</div>
+              <button class="station-control" data-upgrade="helper" type="button"><span>HELFERTEAM · LV <b data-helper-level>1</b></span><small data-helper-rate></small><strong>↑ <span data-helper-upgrade-cost></span> €</strong></button>
             </div>
 
             <div class="room room--stand">
@@ -152,6 +171,8 @@
               <div class="poster-rack"><span></span><span></span><span></span></div>
               <div class="crate crate--one">!</div>
               <div class="crate crate--two">!</div>
+              <div class="station-detail station-detail--banner" aria-hidden="true">MEHR PLATZ</div>
+              <button class="station-control" data-upgrade="stand" type="button"><span>INFOSTAND · LV <b data-stand-level>1</b></span><small data-stand-rate></small><strong>↑ <span data-stand-upgrade-cost></span> €</strong></button>
             </div>
 
             <div class="room room--office">
@@ -162,6 +183,9 @@
                 <span class="worker__head"></span><span class="worker__body"></span>
               </div>
               <div class="cash-machine">€</div>
+              <div class="station-detail station-detail--desk" aria-hidden="true">▤</div>
+              <div class="station-detail station-detail--second-worker" aria-hidden="true">●</div>
+              <button class="station-control" data-upgrade="office" type="button"><span>ORTSBÜRO · LV <b data-office-level>1</b></span><small data-office-rate></small><strong>↑ <span data-office-upgrade-cost></span> €</strong></button>
             </div>
 
             <div class="locked-tunnel">
@@ -188,16 +212,9 @@
               </span>
             </button>
 
-            <button class="game-button game-button--cash" data-action="donate" type="button" hidden>
-              <span class="game-button__icon">€</span>
-              <span>
-                <strong>SPENDE SAMMELN</strong>
-                <small>+2 €</small>
-              </span>
-            </button>
           </div>
 
-          <div class="chapter-progress" data-chapter-progress>
+          <div class="chapter-progress" data-chapter-progress hidden>
             <div class="chapter-progress__labels">
               <span>KOMMUNALWAHL</span>
               <strong><span data-election-percent>0</span>%</strong>
@@ -206,63 +223,8 @@
               <span data-election-bar></span>
             </div>
             <small data-election-mini>Noch 350 Unterstützer bis zum Kapitelziel.</small>
+            <button class="election-action" data-action="election" type="button">KOMMUNALWAHL ANTRETEN · <span data-election-cost></span> €</button>
           </div>
-        </section>
-
-        <section class="upgrade-dock" data-upgrade-dock aria-label="Upgrades">
-          <article class="upgrade-card" data-card="helper" hidden>
-            <div class="upgrade-card__icon upgrade-card__icon--helper">
-              <span class="mini-person"></span>
-            </div>
-            <div class="upgrade-card__copy">
-              <span class="upgrade-card__type">AUTOMATISIERUNG</span>
-              <strong>Wahlkampfhelfer</strong>
-              <small>Verteilt Flyer automatisch.</small>
-            </div>
-            <button class="upgrade-button" data-action="helper" type="button">
-              <span>+1 HELFER</span>
-              <strong><span data-helper-cost>20</span> €</strong>
-            </button>
-          </article>
-
-          <article class="upgrade-card" data-card="stand" hidden>
-            <div class="upgrade-card__icon upgrade-card__icon--stand">▰</div>
-            <div class="upgrade-card__copy">
-              <span class="upgrade-card__type">AUSBAU</span>
-              <strong>Infostand</strong>
-              <small>Mehr Sichtbarkeit und bessere Flyer.</small>
-            </div>
-            <button class="upgrade-button" data-action="stand" type="button">
-              <span>AUFBAUEN</span>
-              <strong>55 €</strong>
-            </button>
-          </article>
-
-          <article class="upgrade-card" data-card="office" hidden>
-            <div class="upgrade-card__icon upgrade-card__icon--office">⌂</div>
-            <div class="upgrade-card__copy">
-              <span class="upgrade-card__type">AUSBAU</span>
-              <strong>Ortsbüro</strong>
-              <small>Erzeugt Unterstützer und Spenden automatisch.</small>
-            </div>
-            <button class="upgrade-button" data-action="office" type="button">
-              <span>MIETEN</span>
-              <strong>140 €</strong>
-            </button>
-          </article>
-
-          <article class="upgrade-card upgrade-card--election" data-card="election" hidden>
-            <div class="upgrade-card__icon upgrade-card__icon--election">✓</div>
-            <div class="upgrade-card__copy">
-              <span class="upgrade-card__type">KAPITELZIEL</span>
-              <strong>Erste Kommunalwahl</strong>
-              <small data-election-progress>350 Unterstützer und 180 € benötigt.</small>
-            </div>
-            <button class="upgrade-button upgrade-button--election" data-action="election" type="button">
-              <span>ANTRETEN</span>
-              <strong>180 €</strong>
-            </button>
-          </article>
         </section>
 
         <section class="ending" data-ending hidden>
@@ -270,7 +232,7 @@
           <div>
             <span>KAPITEL 01 GESCHAFFT</span>
             <h2>Vom Nobody zum kommunalen Mandat.</h2>
-            <p>Dein erster Wahlkampf ist geschafft. Weitere Ebenen bleiben bewusst außerhalb von V0.1.</p>
+            <p>Dein erster Wahlkampf ist geschafft. Kapitel 01 ist abgeschlossen.</p>
           </div>
         </section>
       </section>
