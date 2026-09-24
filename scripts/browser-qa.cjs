@@ -92,10 +92,15 @@ async function run() {
       assert.equal(await page.locator('[data-euro-stat]').isVisible(), false);
       const beforeAuto = await page.evaluate(() => state.supporters);
       const helperStartX = await page.locator('.field-helper').first().evaluate(element => element.getBoundingClientRect().left);
-      await page.waitForTimeout(1400);
-      assert.ok(await page.evaluate(() => state.supporters) > beforeAuto);
+      await page.evaluate(() => helperFeedback(1));
+      assert.equal(await page.locator('.street-passer--street').count(), 1);
+      const passerStartX = await page.locator('.street-passer--street').first().evaluate(element => element.getBoundingClientRect().left);
+      await page.waitForTimeout(1100);
+      assert.ok(await page.evaluate(() => state.supporters) >= beforeAuto);
       const helperLaterX = await page.locator('.field-helper').first().evaluate(element => element.getBoundingClientRect().left);
-      assert.ok(helperLaterX > helperStartX, 'helper must travel from flyer pickup toward the right');
+      const passerLaterX = await page.locator('.street-passer--street').first().evaluate(element => element.getBoundingClientRect().left);
+      assert.ok(Math.abs(helperLaterX - helperStartX) < 8, 'helper must stay stationed at the campaign point');
+      assert.ok(passerLaterX > passerStartX, 'passer must enter from the left and travel right');
       assert.ok(await page.locator('.operations__header').isVisible());
       await capture('helper');
 
@@ -115,6 +120,10 @@ async function run() {
       await page.evaluate(() => { state.supporters = Game.CONFIG.stand.unlockSupporters; render(); });
       await page.locator('[data-action="stand"]').click();
       assert.equal(await page.locator('.info-stand').isVisible(), true);
+      await page.evaluate(() => helperFeedback(1));
+      assert.ok(await page.locator('.street-passer--stand').count() >= 1);
+      assert.equal(await page.locator('.info-stand__roof').isVisible(), true);
+      assert.equal(await page.locator('.info-stand__counter').isVisible(), true);
       await capture('stand');
       for (let i = 0; i < 9; i += 1) await page.locator('[data-upgrade="stand"]').click();
       await page.evaluate(() => { state.supporters = Game.CONFIG.office.unlockSupporters; render(); });
@@ -144,7 +153,7 @@ async function run() {
       assert.equal(await page.evaluate(() => state.supporters), 67);
       assert.equal(await page.evaluate(() => state.helperLevel), 2);
       assert.equal(await page.locator('.field-helper').count(), 2);
-      results.push({ viewport: width + '×' + height, rapidClicks: audit.total, visibleHelperUnits: true, progression: true, reload: true, reset: true, migration: true });
+      results.push({ viewport: width + '×' + height, rapidClicks: audit.total, visibleHelperUnits: true, leftToRightPassers: true, campaignBooth: true, progression: true, reload: true, reset: true, migration: true });
       await page.close();
     }
     assert.deepEqual(errors, []);
