@@ -96,7 +96,9 @@
       helper: state.euros >= CONFIG.helper.unlockEuros || state.helpers > 0 || state.standOwned || state.officeOwned,
       stand: state.supporters >= CONFIG.stand.unlockSupporters || state.standOwned || state.officeOwned,
       office: state.supporters >= CONFIG.office.unlockSupporters || state.officeOwned,
-      election: state.supporters >= CONFIG.election.unlockSupporters || state.electionFinished,
+      election:
+        (state.officeOwned && state.supporters >= CONFIG.election.unlockSupporters) ||
+        state.electionFinished,
     };
   }
 
@@ -126,6 +128,7 @@
   function canRunElection(state) {
     return (
       !state.electionFinished &&
+      state.officeOwned &&
       state.supporters >= CONFIG.election.targetSupporters &&
       state.euros >= CONFIG.election.entryCost
     );
