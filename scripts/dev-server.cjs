@@ -13,7 +13,13 @@ http.createServer((request, response) => {
   if (file !== root && !file.startsWith(root + path.sep)) { response.writeHead(403).end(); return; }
   fs.readFile(file, (error, data) => {
     if (error) { response.writeHead(404).end(); return; }
-    response.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' });
+    response.writeHead(200, {
+      'Content-Type': types[path.extname(file)] || 'application/octet-stream',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'Surrogate-Control': 'no-store',
+    });
     response.end(data);
   });
 }).listen(8080, '127.0.0.1', () => console.log('AMTSWEG: http://localhost:8080'));
