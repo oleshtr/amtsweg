@@ -1,46 +1,48 @@
-// Active replay for the simple visible automation loop.
+// V0.3 active replay: real game logic, including manual cooldown and visible station purchases.
 const Game = require('../src/game.js');
 const stepMs = 100;
 
-function simulate(clicksPerSecond) {
+function simulate(activeSecondsPerMinute = 35) {
   const goals = {};
   let state = Game.createInitialState(1000);
   let now = 1000;
-  let nextClickAt = now;
-  const interval = 1000 / clicksPerSecond;
   const mark = name => {
     if (!(name in goals)) goals[name] = Math.round((now - 1000) / 6000) / 10;
   };
 
-  for (; now < 1000 + 120 * 60 * 1000; now += stepMs) {
-    while (now >= nextClickAt && !state.electionFinished) {
-      if (!state.helperLevel || ((now - 1000) % 60000 < 15000)) {
-        state = Game.distributeFlyer(state, now);
-      }
-      nextClickAt += interval;
-    }
-
+  for (; now < 1000 + 45 * 60 * 1000; now += stepMs) {
+    const minutePosition = ((now - 1000) % 60000) / 1000;
+    const manuallyActive = !state.helperCount || minutePosition < activeSecondsPerMinute;
+    if (manuallyActive && Game.canDistributeFlyer(state, now)) state = Game.distributeFlyer(state, now);
     state = Game.tick(state, stepMs / 1000, now);
 
-    if (!state.helperLevel && Game.canBuy(state, 'helper')) {
-      state = Game.buyStation(state, 'helper', now); mark('helper');
+    if (!state.helperCount && Game.canBuy(state, 'helper')) {
+      state = Game.buyStation(state, 'helper', now); mark('helper1');
     }
     if (Game.unlocks(state).cash) mark('cash');
-    if (state.helperLevel && state.helperLevel < 3 && Game.canBuy(state, 'helper')) {
+
+    if (state.helperCount > 0 && state.helperCount < 5 && Game.canBuy(state, 'helper')) {
       state = Game.buyStation(state, 'helper', now);
+      if (state.helperCount === 3) mark('helper3');
+      if (state.helperCount === 5) mark('helper5');
     }
+
     if (!state.standLevel && Game.canBuy(state, 'stand')) {
-      state = Game.buyStation(state, 'stand', now); mark('stand');
+      state = Game.buyStation(state, 'stand', now); mark('stand1');
     }
-    if (state.standLevel && state.standLevel < 5 && Game.canBuy(state, 'stand')) {
+    if (state.standLevel > 0 && state.standLevel < 3 && Game.canBuy(state, 'stand')) {
       state = Game.buyStation(state, 'stand', now);
+      if (state.standLevel === 3) mark('stand3');
     }
+
     if (!state.officeLevel && Game.canBuy(state, 'office')) {
-      state = Game.buyStation(state, 'office', now); mark('office');
+      state = Game.buyStation(state, 'office', now); mark('office1');
     }
-    if (state.officeLevel && state.officeLevel < 5 && Game.canBuy(state, 'office')) {
+    if (state.officeLevel > 0 && state.officeLevel < 3 && Game.canBuy(state, 'office')) {
       state = Game.buyStation(state, 'office', now);
+      if (state.officeLevel === 3) mark('office3');
     }
+
     if (Game.unlocks(state).election) mark('reveal');
     if (Game.canRunElection(state)) {
       state = Game.runElection(state, now); mark('finished'); break;
@@ -48,14 +50,18 @@ function simulate(clicksPerSecond) {
   }
 
   return {
-    clicksPerSecond,
+    activeSecondsPerMinute,
     minutes: goals,
     final: {
-      supporters: Math.round(state.supporters), euros: Math.round(state.euros),
-      helperLevel: state.helperLevel, standLevel: state.standLevel, officeLevel: state.officeLevel,
+      supporters: Math.round(state.supporters),
+      euros: Math.round(state.euros),
+      helperCount: state.helperCount,
+      standLevel: state.standLevel,
+      officeLevel: state.officeLevel,
+      careerPoints: state.careerPoints,
     },
   };
 }
 
-if (require.main === module) console.log(JSON.stringify([2, 4, 6].map(simulate), null, 2));
+if (require.main === module) console.log(JSON.stringify([20, 35, 50].map(simulate), null, 2));
 module.exports = { simulate };
