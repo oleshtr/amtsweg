@@ -2064,7 +2064,7 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 }
 
 
-/* Visible helper units: one street actor per purchased helper level. */
+/* Visible helper units: one readable campaign worker per purchased helper level. */
 .helper-field {
   position: absolute;
   inset: 0;
@@ -2072,30 +2072,213 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   pointer-events: none;
   overflow: hidden;
 }
+
 .field-helper {
   position: absolute;
   bottom: 69px;
-  width: 42px;
-  height: 82px;
+  width: 44px;
+  height: 84px;
   transform-origin: bottom center;
   animation: fieldHelperRoute var(--helper-duration, 7s) linear infinite;
   animation-delay: var(--helper-delay, 0s);
+  filter: drop-shadow(2px 3px 0 rgba(38,59,82,.18));
 }
-.field-helper .actor__body { background: var(--yellow); }
-.field-helper:nth-child(2n) .actor__body { background: #f29d38; }
-.field-helper:nth-child(3n) .actor__body { background: #66b86c; }
-.field-helper:nth-child(4n) .actor__body { background: #7a67b5; }
-.field-helper:nth-child(5n) .actor__body { background: #53a8a0; }
-.field-helper:nth-child(2n) .actor__cap { background: #4a91d2; }
-.field-helper:nth-child(3n) .actor__cap { background: #e84d45; }
-.field-helper:nth-child(4n) .actor__cap { background: #f3b747; }
-.field-helper:nth-child(5n) .actor__cap { background: #8bcf82; }
 
-.field-helper--handoff .helper__flyers {
-  animation: helperGive .28s steps(3, end) !important;
+/* Head + readable face */
+.field-helper .actor__head {
+  left: 10px;
+  top: 12px;
+  width: 24px;
+  height: 23px;
+  border: 3px solid var(--ink);
+  background: #efbd89;
+  box-shadow: inset 0 -4px #d89968;
+  animation: helperHeadBob .42s steps(2,end) infinite;
 }
+
+.field-helper .actor__head::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  width: 3px;
+  height: 3px;
+  background: #263b52;
+  box-shadow: 10px 0 0 #263b52;
+}
+
+.field-helper .actor__head::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 14px;
+  width: 7px;
+  height: 3px;
+  border-bottom: 2px solid #9f5d4e;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Cap / hair silhouette */
+.field-helper .actor__cap {
+  left: 7px;
+  top: 5px;
+  width: 30px;
+  height: 12px;
+  border: 3px solid var(--ink);
+  border-bottom-width: 2px;
+  background: #377fca;
+  box-shadow: 10px 5px 0 -4px #377fca, 10px 5px 0 -2px var(--ink);
+}
+
+/* Campaign shirt / jacket */
+.field-helper .actor__body {
+  left: 7px;
+  top: 35px;
+  width: 30px;
+  height: 27px;
+  border: 3px solid var(--ink);
+  background:
+    linear-gradient(90deg, transparent 0 12px, #fff8df 12px 15px, transparent 15px 100%),
+    #ffd449;
+  box-shadow: inset -5px 0 rgba(38,59,82,.12);
+  animation: helperTorsoBob .42s steps(2,end) infinite;
+}
+
+/* Shirt collar */
+.field-helper .actor__body > * { pointer-events: none; }
+.field-helper .actor__body::before,
+.field-helper .actor__body::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  width: 9px;
+  height: 21px;
+  border: 3px solid var(--ink);
+  background: #efbd89;
+  transform-origin: top center;
+  z-index: -1;
+}
+
+.field-helper .actor__body::before {
+  left: -10px;
+  animation: helperArmLeft .42s steps(2,end) infinite;
+}
+
+.field-helper .actor__body::after {
+  right: -10px;
+  animation: helperArmRight .42s steps(2,end) infinite;
+}
+
+/* Two independently walking legs */
+.field-helper .actor__legs {
+  left: 12px;
+  top: 60px;
+  width: 7px;
+  height: 20px;
+  border: 0;
+  background: #263b52;
+  transform-origin: top center;
+  animation: helperLegLeft .42s steps(2,end) infinite;
+}
+
+.field-helper .actor__legs::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 0;
+  width: 7px;
+  height: 20px;
+  background: #263b52;
+  transform-origin: top center;
+  animation: helperLegRight .42s steps(2,end) infinite;
+}
+
+.field-helper .actor__legs::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  bottom: -3px;
+  width: 12px;
+  height: 4px;
+  background: #15253a;
+  box-shadow: 15px 0 0 #15253a;
+}
+
+/* Visible flyer stack in hand */
+.field-helper .helper__flyers {
+  right: -8px;
+  top: 39px;
+  width: 15px;
+  height: 20px;
+  border: 2px solid var(--ink);
+  background: #fff8df;
+  box-shadow:
+    3px -3px 0 #fff8df,
+    5px -3px 0 var(--ink),
+    6px -6px 0 #fff8df,
+    8px -6px 0 var(--ink);
+  transform: rotate(8deg);
+}
+
+.field-helper .helper__flyers::after {
+  content: "!";
+  position: absolute;
+  inset: 3px 0 0;
+  color: var(--red);
+  font-size: 9px;
+  font-weight: 900;
+  text-align: center;
+}
+
+/* Different outfits so a growing team looks like people, not clones. */
+.field-helper:nth-child(2n) .actor__body {
+  background:
+    linear-gradient(90deg, transparent 0 12px, #fff8df 12px 15px, transparent 15px 100%),
+    #f29d38;
+}
+.field-helper:nth-child(3n) .actor__body {
+  background:
+    linear-gradient(90deg, transparent 0 12px, #fff8df 12px 15px, transparent 15px 100%),
+    #66b86c;
+}
+.field-helper:nth-child(4n) .actor__body {
+  background:
+    linear-gradient(90deg, transparent 0 12px, #fff8df 12px 15px, transparent 15px 100%),
+    #7a67b5;
+}
+.field-helper:nth-child(5n) .actor__body {
+  background:
+    linear-gradient(90deg, transparent 0 12px, #fff8df 12px 15px, transparent 15px 100%),
+    #53a8a0;
+}
+.field-helper:nth-child(2n) .actor__cap {
+  background: #4a91d2;
+  box-shadow: 10px 5px 0 -4px #4a91d2, 10px 5px 0 -2px var(--ink);
+}
+.field-helper:nth-child(3n) .actor__cap {
+  background: #e84d45;
+  box-shadow: 10px 5px 0 -4px #e84d45, 10px 5px 0 -2px var(--ink);
+}
+.field-helper:nth-child(4n) .actor__cap {
+  background: #f3b747;
+  box-shadow: 10px 5px 0 -4px #f3b747, 10px 5px 0 -2px var(--ink);
+}
+.field-helper:nth-child(5n) .actor__cap {
+  background: #8bcf82;
+  box-shadow: 10px 5px 0 -4px #8bcf82, 10px 5px 0 -2px var(--ink);
+}
+.field-helper:nth-child(3n) .actor__head { background: #c98258; box-shadow: inset 0 -4px #a86449; }
+.field-helper:nth-child(4n) .actor__head { background: #f2c995; box-shadow: inset 0 -4px #d9a772; }
+
+/* A completed helper cycle visibly looks like handing out a flyer. */
 .field-helper--handoff {
-  filter: brightness(1.18);
+  filter: brightness(1.18) drop-shadow(2px 3px 0 rgba(38,59,82,.18));
+}
+.field-helper--handoff .helper__flyers {
+  animation: helperFlyerHandoff .32s steps(3,end) !important;
+}
+.field-helper--handoff .actor__body::after {
+  animation: helperHandoffArm .32s steps(3,end) !important;
 }
 
 @keyframes fieldHelperRoute {
@@ -2105,6 +2288,48 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   50%  { transform: translateX(var(--helper-distance-b, 90px)) scaleX(-1) scale(var(--helper-scale, .82)); }
   75%  { transform: translateX(var(--helper-distance-a, 45px)) translateY(-2px) scaleX(-1) scale(var(--helper-scale, .82)); }
   100% { transform: translateX(0) scaleX(-1) scale(var(--helper-scale, .82)); }
+}
+
+@keyframes helperHeadBob {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes helperTorsoBob {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(1px); }
+}
+
+@keyframes helperArmLeft {
+  0%,100% { transform: rotate(24deg); }
+  50% { transform: rotate(-20deg); }
+}
+
+@keyframes helperArmRight {
+  0%,100% { transform: rotate(-22deg); }
+  50% { transform: rotate(22deg); }
+}
+
+@keyframes helperLegLeft {
+  0%,100% { transform: rotate(11deg) translateY(0); }
+  50% { transform: rotate(-13deg) translateY(1px); }
+}
+
+@keyframes helperLegRight {
+  0%,100% { transform: rotate(-13deg) translateY(1px); }
+  50% { transform: rotate(11deg) translateY(0); }
+}
+
+@keyframes helperFlyerHandoff {
+  0% { transform: translate(0,0) rotate(8deg); }
+  50% { transform: translate(7px,-4px) rotate(24deg); }
+  100% { transform: translate(0,0) rotate(8deg); }
+}
+
+@keyframes helperHandoffArm {
+  0% { transform: rotate(-22deg); }
+  50% { transform: rotate(-52deg); }
+  100% { transform: rotate(-22deg); }
 }
 
 @media (max-width: 650px) {
