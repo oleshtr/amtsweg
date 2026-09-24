@@ -126,6 +126,10 @@ async function run() {
       const standPassers = await page.locator('.street-passer--stand').count();
       assert.ok(standPassers >= 1 && standPassers <= 4);
       assert.ok(await page.locator('.field-helper').count() <= 2);
+      const helperBox = await page.locator('.field-helper').first().boundingBox();
+      const standBox = await page.locator('.info-stand').boundingBox();
+      assert.ok(helperBox && standBox && helperBox.x > standBox.x - 80,
+        'visible helper must move from flyer point to campaign booth after stand build');
       assert.equal(await page.locator('.info-stand__roof').isVisible(), true);
       assert.equal(await page.locator('.info-stand__counter').isVisible(), true);
       await capture('stand');
