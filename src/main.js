@@ -13,6 +13,7 @@ const elements = {
   status: $('[data-status-copy]'), toast: $('[data-toast]'),
   reset: $('[data-action="reset"]'), supporterHud: $('[data-supporter-stat]'),
   helperField: $('[data-helper-field]'),
+  passerField: $('[data-passer-field]'),
 };
 const integerFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
 const smallFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
@@ -26,6 +27,7 @@ let previousStage = null;
 let lastRender = lastFrame;
 let previousCheerTier = null;
 let helperPulseIndex = 0;
+let passerSerial = 0;
 
 function loadState() {
   try {
@@ -116,6 +118,46 @@ function flyerFeedback() {
   elements.supporterHud.classList.add('hud-stat--pulse');
 }
 
+function spawnConvertedPasser(amount) {
+  const active = Array.from(elements.passerField.querySelectorAll('.street-passer'));
+  if (active.length >= 10) active[0].remove();
+
+  const index = passerSerial++;
+  const passer = document.createElement('div');
+  const atStand = state.standLevel > 0;
+  passer.className = 'street-passer street-passer--' + (atStand ? 'stand' : 'street');
+  passer.setAttribute('aria-hidden', 'true');
+
+  const palettes = [
+    ['#efbd89', '#654735', '#6ca6c9'],
+    ['#c98258', '#2f2a28', '#cf6b65'],
+    ['#f2c995', '#8a5a3d', '#6eaa72'],
+    ['#dfaa7d', '#49372d', '#8d75bb'],
+    ['#d49368', '#2f3c4d', '#d89a49'],
+  ];
+  const palette = palettes[index % palettes.length];
+  passer.style.setProperty('--passer-skin', palette[0]);
+  passer.style.setProperty('--passer-hair', palette[1]);
+  passer.style.setProperty('--passer-shirt', palette[2]);
+  passer.style.setProperty('--passer-duration', ((atStand ? 6.7 : 6.2) + (index % 3) * .22) + 's');
+
+  passer.innerHTML =
+    '<div class="street-passer__person">' +
+      '<span class="street-passer__hair"></span>' +
+      '<span class="street-passer__head"></span>' +
+      '<span class="street-passer__torso"></span>' +
+      '<span class="street-passer__legs"></span>' +
+      '<span class="street-passer__flyer">!</span>' +
+      '<span class="street-passer__gain">+' + smallFormat.format(amount) + ' Unterstützer</span>' +
+    '</div>';
+
+  elements.passerField.appendChild(passer);
+  passer.addEventListener('animationend', event => {
+    if (event.target === passer) passer.remove();
+  });
+  setTimeout(() => passer.remove(), 8500);
+}
+
 function helperFeedback(amount) {
   const helpers = Array.from(document.querySelectorAll('.field-helper'));
   if (helpers.length) {
@@ -126,13 +168,15 @@ function helperFeedback(amount) {
     helper.classList.add('field-helper--handoff');
     setTimeout(() => helper.classList.remove('field-helper--handoff'), 340);
   }
+
   if (state.standLevel) {
     const stand = $('.info-stand');
     stand.classList.remove('info-stand--working');
     void stand.offsetWidth;
     stand.classList.add('info-stand--working');
   }
-  showGain(amount, 'helper');
+
+  spawnConvertedPasser(amount);
 }
 
 function donationFeedback(amount) {
@@ -174,26 +218,40 @@ function cheerCrowd() {
 
 function renderVisibleHelpers() {
   const count = Math.max(0, Math.floor(state.helperLevel));
-  while (elements.helperField.children.length < count) {
+  const visibleCount = Math.min(count, 16);
+
+  while (elements.helperField.children.length < visibleCount) {
     const index = elements.helperField.children.length;
     const helper = document.createElement('div');
     helper.className = 'field-helper actor actor--helper';
     helper.dataset.helperNumber = String(index + 1);
     helper.setAttribute('aria-hidden', 'true');
     helper.innerHTML = '<div class="actor__cap"></div><div class="actor__head"></div><div class="actor__body"></div><div class="actor__legs"></div><div class="helper__flyers"></div>';
-
-    const lane = index % 3;
-    const duration = 7.2 + (index % 4) * .35;
-    helper.style.left = '29%';
-    helper.style.bottom = (69 + lane * 3) + 'px';
-    helper.style.setProperty('--helper-scale', lane === 2 ? '.76' : lane === 1 ? '.8' : '.84');
-    helper.style.setProperty('--helper-delay', (-index * 1.15) + 's');
-    helper.style.setProperty('--helper-duration', duration + 's');
     elements.helperField.appendChild(helper);
   }
-  while (elements.helperField.children.length > count) {
+
+  while (elements.helperField.children.length > visibleCount) {
     elements.helperField.lastElementChild.remove();
   }
+
+  const atStand = state.standLevel > 0;
+  Array.from(elements.helperField.children).forEach((helper, index) => {
+    const column = index % 4;
+    const row = Math.floor(index / 4);
+
+    if (atStand) {
+      helper.style.left = (58.4 + column * 2.8) + '%';
+      helper.style.bottom = (70 + row * 12) + 'px';
+      helper.style.setProperty('--helper-scale', row >= 2 ? '.62' : '.7');
+    } else {
+      helper.style.left = (30.5 + column * 3.1) + '%';
+      helper.style.bottom = (69 + row * 10) + 'px';
+      helper.style.setProperty('--helper-scale', row >= 2 ? '.64' : '.74');
+    }
+
+    helper.style.removeProperty('--helper-delay');
+    helper.style.removeProperty('--helper-duration');
+  });
 }
 
 function renderStation(name, level, unlocked) {
@@ -263,9 +321,9 @@ function render() {
     stage >= 5 ? 'NÄCHSTES ZIEL: KOMMUNALWAHL' :
     bottleneck.office ? 'Das Ortsbüro erreicht seine Spendenkapazität.' :
     stage >= 4 ? 'Das Ortsbüro organisiert die Spenden.' :
-    stage >= 3 ? 'Der Infostand verstärkt die Helferarbeit.' :
+    stage >= 3 ? 'Passanten laufen von links zum Infostand, halten kurz an und nehmen einen Flyer mit.' :
     stage >= 2 ? 'Je 10 neue Unterstützer kommt sichtbar eine Spende.' :
-    stage >= 1 ? 'Dein Helfer verteilt sichtbar Flyer und gewinnt Unterstützer.' :
+    stage >= 1 ? 'Passanten kommen von links, nehmen beim Straßenteam einen Flyer und laufen rechts weiter.' :
       'Verteile Flyer. Ab 25 Unterstützern kannst du einen Helfer anwerben.';
   if (previousStage !== null && stage > previousStage) {
     flashScene();
@@ -319,6 +377,8 @@ elements.reset.addEventListener('click', () => {
   previousCheerTier = null;
   helperPulseIndex = 0;
   elements.helperField.replaceChildren();
+  elements.passerField.replaceChildren();
+  passerSerial = 0;
   render();
   saveState();
   toast('Neuer Spielstand gestartet.');
