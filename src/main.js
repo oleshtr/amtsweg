@@ -29,6 +29,9 @@ const els = {
   electionPercent: document.querySelector('[data-election-percent]'),
   electionBar: document.querySelector('[data-election-bar]'),
   electionMini: document.querySelector('[data-election-mini]'),
+  chapterProgress: document.querySelector('[data-chapter-progress]'),
+  controlDeck: document.querySelector('[data-control-deck]'),
+  upgradeDock: document.querySelector('[data-upgrade-dock]'),
   worldLevel: document.querySelector('[data-world-level]'),
   statusCopy: document.querySelector('[data-status-copy]'),
   toast: document.querySelector('[data-toast]'),
@@ -125,6 +128,7 @@ function updateScene(unlocked) {
   els.scene.classList.toggle('scene--office', state.officeOwned);
   els.scene.classList.toggle('scene--finished', state.electionFinished);
   els.scene.classList.toggle('scene--donations', unlocked.donations);
+  els.scene.classList.toggle('scene--election', unlocked.election || state.electionFinished);
 
   const worldLevel =
     1 +
@@ -146,8 +150,8 @@ function render() {
 
   els.supporters.textContent = formatNumber(state.supporters);
   els.euros.textContent = formatNumber(state.euros);
-  els.rate.textContent = supportRate > 0 ? `+${formatNumber(supportRate)} / Sek.` : 'MANUELL';
-  els.cashRate.textContent = cashPerSecond > 0 ? `+${formatNumber(cashPerSecond)} € / Sek.` : 'AKTIV SAMMELN';
+  els.rate.textContent = supportRate > 0 ? `+${formatNumber(supportRate)} / Sek.` : '';
+  els.cashRate.textContent = cashPerSecond > 0 ? `+${formatNumber(cashPerSecond)} € / Sek.` : '';
   els.euroStat.hidden = !unlocked.donations;
 
   els.flyerButton.querySelector('small').textContent = `+${Game.flyerGain(state)} Unterstützer`;
@@ -167,6 +171,10 @@ function render() {
   els.officeButton.disabled = !Game.canBuyOffice(state) || state.electionFinished;
 
   els.electionCard.hidden = !unlocked.election || state.electionFinished;
+  els.chapterProgress.hidden = !unlocked.election && !state.electionFinished;
+  els.controlDeck.classList.toggle('control-deck--solo', els.chapterProgress.hidden);
+  els.upgradeDock.hidden = !unlocked.helper && !unlocked.stand && !unlocked.office && !unlocked.election;
+
   const supporterNeed = Math.max(0, Math.ceil(Game.CONFIG.election.targetSupporters - state.supporters));
   const euroNeed = Math.max(0, Math.ceil(Game.CONFIG.election.entryCost - state.euros));
   const needs = [];
