@@ -107,7 +107,7 @@ function manualFeedback(amount) {
   elements.flyer.classList.add('game-button--pressed');
   setTimeout(() => elements.flyer.classList.remove('game-button--pressed'), 150);
 
-  const arm = $('[data-candidate] .actor__arm');
+  const arm = $('[data-candidate-arm]');
   if (arm && arm.getAnimations().length < 4) {
     arm.animate([
       { transform: 'rotate(0deg)' },
