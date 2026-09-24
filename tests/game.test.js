@@ -50,8 +50,31 @@ test('office adds passive donations', () => {
   state = Game.buyOffice(state);
   assert.equal(state.officeOwned, true);
   state = Game.tick(state, 10);
-  assert.equal(state.euros, 7);
+  assert.equal(state.euros, 12);
   assert.equal(state.supporters, 155);
+});
+
+test('world stage follows earned progression from 0 through 6', () => {
+  let state = Game.createInitialState();
+  assert.equal(Game.worldStage(state), 0);
+
+  state.supporters = Game.CONFIG.donationUnlockSupporters;
+  assert.equal(Game.worldStage(state), 1);
+
+  state.helpers = 1;
+  assert.equal(Game.worldStage(state), 2);
+
+  state.standOwned = true;
+  assert.equal(Game.worldStage(state), 3);
+
+  state.officeOwned = true;
+  assert.equal(Game.worldStage(state), 4);
+
+  state.supporters = Game.CONFIG.election.unlockSupporters;
+  assert.equal(Game.worldStage(state), 5);
+
+  state.electionFinished = true;
+  assert.equal(Game.worldStage(state), 6);
 });
 
 test('election is fail-closed until both requirements are met', () => {
