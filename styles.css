@@ -1608,3 +1608,61 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   .room--office { top: 262px; }
   .control-deck--solo { grid-template-columns: 1fr; }
 }
+
+
+/* Keep ownership visuals strict: nothing appears merely because a later system exists. */
+.game-hud--compact {
+  grid-template-columns: minmax(220px, 1fr) 1.15fr 64px;
+}
+
+.scene--stand .helper--one,
+.scene--stand .helper--two,
+.scene--office .helper--one,
+.scene--office .helper--two,
+.scene--office .info-stand,
+.scene--office .passer--two {
+  display: none;
+}
+
+.scene--helpers .helper--one {
+  display: block;
+}
+
+.scene--helpers.scene--stand .helper--two {
+  display: block;
+}
+
+.scene--stand .info-stand,
+.scene--stand .passer--two {
+  display: block;
+}
+
+.scene:not(.scene--helpers) .room--helpers,
+.scene:not(.scene--stand) .room--stand,
+.scene:not(.scene--office) .room--office {
+  opacity: 0;
+  visibility: hidden;
+  filter: grayscale(.7);
+  transform: translateY(12px);
+}
+
+.scene--helpers .room--helpers,
+.scene--stand .room--stand,
+.scene--office .room--office {
+  opacity: 1;
+  visibility: visible;
+  filter: none;
+  transform: translateY(0);
+}
+
+@media (max-width: 900px) {
+  .game-hud--compact {
+    grid-template-columns: 1fr 1fr 58px;
+  }
+}
+
+@media (max-width: 650px) {
+  .game-hud--compact {
+    grid-template-columns: 1fr 1fr 48px;
+  }
+}
