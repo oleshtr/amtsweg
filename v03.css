@@ -73,8 +73,8 @@
 .field-helper {
   --helper-cycle: 8s;
   position: absolute;
-  left: calc(48% + (var(--helper-index) % 5) * 4.8%);
-  top: calc(188px + (var(--helper-index) % 2) * 14px);
+  left: 48%;
+  top: 188px;
   width: 26px;
   height: 49px;
   transform-origin: center bottom;
