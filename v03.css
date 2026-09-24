@@ -16,13 +16,15 @@
 
 .world[data-stage="0"] { height: 355px; }
 .world[data-stage="1"],
-.world[data-stage="2"] { height: 530px; }
+.world[data-stage="2"] { height: 600px; }
 .world[data-stage="3"],
 .world[data-stage="4"],
 .world[data-stage="5"],
 .world[data-stage="6"] { height: 650px; }
 
 .world .surface { height: 308px; }
+.world[data-stage="0"] .world-status { display: flex; }
+.world[data-stage="0"] .flyer-stack { display: block; }
 
 .helper-field,
 .helper-overflow,
