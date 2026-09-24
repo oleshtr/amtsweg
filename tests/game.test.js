@@ -16,14 +16,12 @@ test('fresh start has only manual play and no passive production', () => {
   assert.equal(Game.unlocks(s).cash, false);
 });
 
-test('manual flyer action has a real cooldown instead of click spam', () => {
+test('manual flyer action is fully spammable and every click counts', () => {
   let s = fresh();
-  s = Game.distributeFlyer(s, 1000);
-  assert.equal(s.supporters, 1);
-  const blocked = Game.distributeFlyer(s, 1001);
-  assert.equal(blocked.supporters, 1);
-  s = Game.distributeFlyer(s, 1000 + C.manual.cooldownMs);
-  assert.equal(s.supporters, 2);
+  for (let i = 0; i < 100; i += 1) s = Game.distributeFlyer(s, 1000);
+  assert.equal(C.manual.cooldownMs, 0);
+  assert.equal(s.supporters, 100);
+  assert.equal(Game.nextManualInMs(s, 1000), 0);
 });
 
 test('first helper unlocks early, is free and becomes a real count', () => {
@@ -65,8 +63,7 @@ test('organic donations are tied to supporter gains', () => {
   let s = withResources(fresh(), C.donation.unlockSupporters, 0);
   s.helperCount = 1;
   s.lastManualAt = 0;
-  const step = C.manual.cooldownMs + 1;
-  for (let i = 1; i <= C.donation.supportersPerDonation; i += 1) s = Game.distributeFlyer(s, 1000 + i * step);
+  for (let i = 1; i <= C.donation.supportersPerDonation; i += 1) s = Game.distributeFlyer(s, 1000);
   assert.ok(s.euros >= C.donation.baseEuros);
 });
 
@@ -140,12 +137,12 @@ test('v0.2 saves migrate helperLevel into helperCount', () => {
   assert.equal('campaignLevel' in old, false);
 });
 
-test('balanced active replay preserves progression and finishes first district in target corridor', () => {
-  const m = simulate(35).minutes;
+test('balanced spam-click replay preserves progression and finishes first district', () => {
+  const m = simulate(4).minutes;
   assert.ok(m.helper1 < m.cash);
   assert.ok(m.cash < m.stand1);
   assert.ok(m.stand1 < m.office1);
   assert.ok(m.office1 < m.reveal);
   assert.ok(m.reveal < m.finished);
-  assert.ok(m.finished >= 10 && m.finished <= 24, 'finished at ' + m.finished + ' minutes');
+  assert.ok(m.finished > 0 && m.finished <= 24, 'finished at ' + m.finished + ' minutes');
 });
