@@ -8,7 +8,8 @@
     <meta name="description" content="AMTSWEG – vom politischen Nobody zum kommunalen Tycoon." />
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css?v=030924-2" />
-    <link rel="stylesheet" href="v03.css?v=030924-2" />
+    <link rel="stylesheet" href="v03.css?v=030924-3" />
+    <link rel="stylesheet" href="v031-city.css?v=030924-3" />
   </head>
   <body>
     <main class="game-shell">
@@ -43,105 +44,45 @@
         </header>
 
         <section class="world" data-scene data-stage="0" aria-label="Deine wachsende Wahlkampfwelt">
-          <svg class="v03-city-canvas" viewBox="0 0 1000 308" preserveAspectRatio="none" aria-hidden="true"
-               style="position:absolute;inset:0 auto auto 0;width:100%;height:308px;display:block;z-index:1;overflow:visible;">
-            <defs>
-              <linearGradient id="v03Sky" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#66bde9"/>
-                <stop offset="72%" stop-color="#9ee1f2"/>
-                <stop offset="100%" stop-color="#c8edef"/>
-              </linearGradient>
-              <linearGradient id="v03Road" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#647887"/>
-                <stop offset="50%" stop-color="#788b99"/>
-                <stop offset="100%" stop-color="#647887"/>
-              </linearGradient>
-            </defs>
+          <div class="aw3-city" aria-hidden="true">
+            <div class="aw3-sun"></div>
+            <div class="aw3-cloud aw3-cloud--a"></div>
+            <div class="aw3-cloud aw3-cloud--b"></div>
 
-            <rect x="0" y="0" width="1000" height="308" fill="url(#v03Sky)"/>
-            <circle cx="840" cy="48" r="28" fill="#ffe56b" stroke="#ffffff88" stroke-width="7"/>
-            <g fill="#ffffff" opacity=".88">
-              <rect x="90" y="45" width="90" height="22"/><rect x="112" y="29" width="55" height="22"/><rect x="152" y="37" width="58" height="22"/>
-              <rect x="625" y="70" width="82" height="19"/><rect x="649" y="56" width="51" height="20"/>
-            </g>
+            <div class="aw3-building aw3-building--bakery">
+              <div class="aw3-roof"></div><div class="aw3-sign">BÄCKEREI</div>
+              <div class="aw3-window aw3-window--l"></div><div class="aw3-window aw3-window--r"></div><div class="aw3-door"></div>
+            </div>
+            <div class="aw3-building aw3-building--home">
+              <div class="aw3-roof"></div>
+              <div class="aw3-window aw3-window--l"></div><div class="aw3-window aw3-window--r"></div><div class="aw3-door"></div>
+            </div>
+            <div class="aw3-building aw3-building--cafe">
+              <div class="aw3-roof"></div><div class="aw3-sign">CAFÉ</div>
+              <div class="aw3-window aw3-window--l"></div><div class="aw3-window aw3-window--r"></div><div class="aw3-door"></div>
+            </div>
 
-            <g stroke="#263b52" stroke-width="4">
-              <g>
-                <rect x="25" y="112" width="155" height="118" fill="#e7c7a4"/>
-                <polygon points="15,112 34,88 170,88 190,112" fill="#8d5a53"/>
-                <rect x="52" y="130" width="100" height="24" fill="#fff2c8"/>
-                <text x="102" y="147" text-anchor="middle" font-family="monospace" font-size="12" font-weight="900" fill="#263b52" stroke="none">BÄCKEREI</text>
-                <rect x="48" y="171" width="31" height="28" fill="#91d4e0"/>
-                <rect x="99" y="171" width="31" height="28" fill="#91d4e0"/>
-                <rect x="137" y="181" width="27" height="49" fill="#735969"/>
-              </g>
+            <div class="aw3-tree aw3-tree--a"><i></i><b></b></div>
+            <div class="aw3-tree aw3-tree--b"><i></i><b></b></div>
+            <div class="aw3-bench"></div>
 
-              <g>
-                <rect x="202" y="95" width="160" height="135" fill="#bfd0d3"/>
-                <polygon points="191,95 218,69 347,69 373,95" fill="#577b92"/>
-                <rect x="225" y="128" width="34" height="31" fill="#91d4e0"/>
-                <rect x="286" y="128" width="34" height="31" fill="#91d4e0"/>
-                <rect x="261" y="178" width="35" height="52" fill="#735969"/>
-              </g>
+            <div class="aw3-sidewalk"></div>
+            <div class="aw3-road"><i></i><i></i><i></i><i></i><i></i></div>
 
-              <g>
-                <rect x="765" y="119" width="174" height="111" fill="#e3b4ad"/>
-                <polygon points="752,119 780,94 925,94 950,119" fill="#705c72"/>
-                <rect x="795" y="136" width="111" height="22" fill="#fff2c8"/>
-                <text x="850" y="151" text-anchor="middle" font-family="monospace" font-size="12" font-weight="900" fill="#263b52" stroke="none">CAFÉ</text>
-                <rect x="792" y="178" width="34" height="28" fill="#91d4e0"/>
-                <rect x="850" y="178" width="34" height="28" fill="#91d4e0"/>
-                <rect x="902" y="182" width="24" height="48" fill="#735969"/>
-              </g>
+            <div class="aw3-flyers"><i></i><i></i><i></i><b>FLYER</b></div>
 
-              <g>
-                <rect x="420" y="169" width="14" height="63" fill="#8e6945"/>
-                <circle cx="427" cy="155" r="31" fill="#56a777"/>
-                <circle cx="408" cy="166" r="23" fill="#69b97e"/>
-                <circle cx="447" cy="166" r="24" fill="#88ca85"/>
-              </g>
-              <g>
-                <rect x="690" y="176" width="12" height="56" fill="#8e6945"/>
-                <circle cx="696" cy="161" r="28" fill="#56a777"/>
-                <circle cx="678" cy="170" r="21" fill="#69b97e"/>
-                <circle cx="714" cy="170" r="21" fill="#88ca85"/>
-              </g>
-            </g>
+            <div class="aw3-candidate" data-candidate>
+              <i class="aw3-candidate__hair"></i>
+              <i class="aw3-candidate__head"></i>
+              <i class="aw3-candidate__body"></i>
+              <i class="aw3-candidate__legs"></i>
+              <i class="aw3-candidate__arm" data-candidate-arm></i>
+              <i class="aw3-candidate__paper">!</i>
+            </div>
 
-            <rect x="0" y="230" width="1000" height="28" fill="#a9bebe" stroke="#263b52" stroke-width="4"/>
-            <path d="M0 244 H1000" stroke="#dfe5da" stroke-width="5" stroke-dasharray="72 4"/>
-            <rect x="0" y="258" width="1000" height="50" fill="url(#v03Road)" stroke="#263b52" stroke-width="4"/>
-            <path d="M25 283 H125 M205 283 H305 M385 283 H485 M565 283 H665 M745 283 H845 M925 283 H1000"
-                  stroke="#fff3bd" stroke-width="6"/>
+            <div class="aw3-build-tag">V0.3 · STRASSENWAHLKAMPF</div>
+          </div>
 
-            <g stroke="#263b52" stroke-width="4">
-              <g transform="translate(370 186)">
-                <rect x="0" y="0" width="49" height="29" fill="#fff8df" transform="rotate(-7 24 14)"/>
-                <rect x="5" y="-8" width="49" height="29" fill="#fff8df" transform="rotate(5 29 6)"/>
-                <rect x="10" y="-15" width="49" height="29" fill="#fff8df"/>
-                <text x="34" y="4" text-anchor="middle" font-family="monospace" font-size="9" font-weight="900" fill="#e84d45" stroke="none">FLYER</text>
-              </g>
-
-              <g data-candidate transform="translate(485 150)">
-                <ellipse cx="21" cy="82" rx="22" ry="6" fill="#263b5244" stroke="none"/>
-                <rect x="9" y="12" width="25" height="25" fill="#e9ad76"/>
-                <rect x="7" y="7" width="29" height="12" fill="#603e2c"/>
-                <rect x="5" y="37" width="33" height="29" fill="#2d64a1"/>
-                <polygon points="19,40 24,40 27,57 16,57" fill="#ffd449" stroke="none"/>
-                <path d="M11 66 V82 M32 66 V82" stroke="#263b52" stroke-width="7"/>
-                <g data-candidate-arm style="transform-box:fill-box;transform-origin:2px 4px;">
-                  <rect x="35" y="41" width="17" height="9" fill="#e9ad76"/>
-                  <rect x="48" y="34" width="17" height="23" fill="#fffdf5"/>
-                  <text x="56.5" y="50" text-anchor="middle" font-family="monospace" font-size="11" font-weight="900" fill="#e84d45" stroke="none">!</text>
-                </g>
-              </g>
-            </g>
-
-            <g opacity=".92">
-              <rect x="548" y="214" width="82" height="12" rx="2" fill="#b27851" stroke="#263b52" stroke-width="4"/>
-              <path d="M558 226 v18 M620 226 v18" stroke="#263b52" stroke-width="6"/>
-            </g>
-          </svg>
           <div class="v03-surface">
             <div class="townscape" aria-hidden="true">
               <div class="town-house town-house--bakery"><span class="town-house__roof"></span><span class="town-house__windows"></span><span class="town-house__door"></span><b>BÄCKEREI</b></div>
@@ -268,7 +209,7 @@
       <div class="toast" role="status" aria-live="polite" data-toast></div>
     </main>
 
-    <script src="src/game.js?v=030924-2"></script>
-    <script src="src/main.js?v=030924-2"></script>
+    <script src="src/game.js?v=030924-3"></script>
+    <script src="src/main.js?v=030924-3"></script>
   </body>
 </html>
