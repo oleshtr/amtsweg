@@ -1461,7 +1461,8 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 }
 
 
-/* V0.1 progressive disclosure: the world grows only after the player earns it. */
+/* V0.1 stage-driven progressive disclosure.
+   game.js decides the stage, main.js applies data-stage, CSS only renders it. */
 .world {
   height: 308px;
   transition: height .42s steps(5, end);
@@ -1473,59 +1474,102 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 .passer,
 .operations,
 .info-stand,
-.helper {
+.helper,
+.room,
+.locked-tunnel,
+.world-status {
   display: none;
 }
 
-.locked-tunnel,
-.scene--finished .locked-tunnel {
-  display: none !important;
-}
-
-.scene--donations .flyer-stack,
-.scene--donations .passer--one {
+.world[data-stage="1"] .flyer-stack,
+.world[data-stage="1"] .passer--one,
+.world[data-stage="1"] .world-status,
+.world[data-stage="2"] .flyer-stack,
+.world[data-stage="2"] .passer--one,
+.world[data-stage="2"] .world-status,
+.world[data-stage="3"] .flyer-stack,
+.world[data-stage="3"] .passer--one,
+.world[data-stage="3"] .world-status,
+.world[data-stage="4"] .flyer-stack,
+.world[data-stage="4"] .passer--one,
+.world[data-stage="4"] .world-status,
+.world[data-stage="5"] .flyer-stack,
+.world[data-stage="5"] .passer--one,
+.world[data-stage="5"] .world-status,
+.world[data-stage="6"] .flyer-stack,
+.world[data-stage="6"] .passer--one,
+.world[data-stage="6"] .world-status {
   display: block;
 }
 
-.scene--helpers {
+.world[data-stage="2"],
+.world[data-stage="3"],
+.world[data-stage="4"],
+.world[data-stage="5"],
+.world[data-stage="6"] {
   height: 500px;
 }
 
-.scene--helpers .campaign-house,
-.scene--helpers .operations,
-.scene--helpers .helper--one {
-  display: block;
-}
-
-.scene--stand {
+.world[data-stage="3"] {
   height: 650px;
 }
 
-.scene--stand .campaign-house,
-.scene--stand .operations,
-.scene--stand .helper--one,
-.scene--stand .helper--two,
-.scene--stand .info-stand,
-.scene--stand .passer--one,
-.scene--stand .passer--two {
-  display: block;
-}
-
-.scene--office {
+.world[data-stage="4"],
+.world[data-stage="5"],
+.world[data-stage="6"] {
   height: 800px;
 }
 
-.scene--office .campaign-house,
-.scene--office .operations,
-.scene--office .helper--one,
-.scene--office .helper--two,
-.scene--office .info-stand,
-.scene--office .passer--one,
-.scene--office .passer--two {
+.world[data-stage="2"] .operations,
+.world[data-stage="3"] .operations,
+.world[data-stage="4"] .operations,
+.world[data-stage="5"] .operations,
+.world[data-stage="6"] .operations,
+.world[data-stage="2"] .shaft,
+.world[data-stage="3"] .shaft,
+.world[data-stage="4"] .shaft,
+.world[data-stage="5"] .shaft,
+.world[data-stage="6"] .shaft {
   display: block;
 }
 
-.scene--election .cityhall {
+.world[data-stage="2"] .helper--one,
+.world[data-stage="3"] .helper--one,
+.world[data-stage="4"] .helper--one,
+.world[data-stage="5"] .helper--one,
+.world[data-stage="6"] .helper--one {
+  display: block;
+  animation: helperRoute 7s linear infinite;
+}
+
+.world[data-stage="3"] .helper--two,
+.world[data-stage="4"] .helper--two,
+.world[data-stage="5"] .helper--two,
+.world[data-stage="6"] .helper--two {
+  display: block;
+  animation: helperRouteTwo 8.5s 2s linear infinite;
+}
+
+.world[data-stage="3"] .info-stand,
+.world[data-stage="4"] .info-stand,
+.world[data-stage="5"] .info-stand,
+.world[data-stage="6"] .info-stand,
+.world[data-stage="3"] .passer--two,
+.world[data-stage="4"] .passer--two,
+.world[data-stage="5"] .passer--two,
+.world[data-stage="6"] .passer--two {
+  display: block;
+}
+
+.world[data-stage="4"] .campaign-house,
+.world[data-stage="5"] .campaign-house,
+.world[data-stage="6"] .campaign-house {
+  display: block;
+  animation: upgradeReveal .32s steps(4, end);
+}
+
+.world[data-stage="5"] .cityhall,
+.world[data-stage="6"] .cityhall {
   display: block;
   animation: upgradeReveal .32s steps(4, end);
 }
@@ -1541,34 +1585,85 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   height: 126px;
 }
 
-.room--helpers {
-  top: 18px;
-}
+.room--helpers { top: 18px; }
+.room--stand { top: 165px; }
+.room--office { top: 312px; }
 
-.room--stand {
-  top: 165px;
-}
-
-.room--office {
-  top: 312px;
-}
-
-.scene--helpers .room--helpers,
-.scene--stand .room--helpers,
-.scene--office .room--helpers,
-.scene--stand .room--stand,
-.scene--office .room--stand,
-.scene--office .room--office {
+.world[data-stage="2"] .room--helpers,
+.world[data-stage="3"] .room--helpers,
+.world[data-stage="4"] .room--helpers,
+.world[data-stage="5"] .room--helpers,
+.world[data-stage="6"] .room--helpers,
+.world[data-stage="3"] .room--stand,
+.world[data-stage="4"] .room--stand,
+.world[data-stage="5"] .room--stand,
+.world[data-stage="6"] .room--stand,
+.world[data-stage="4"] .room--office,
+.world[data-stage="5"] .room--office,
+.world[data-stage="6"] .room--office {
+  display: block;
   opacity: 1;
   visibility: visible;
   filter: none;
   transform: translateY(0);
+  background: #c9d9e3;
+  animation: upgradeReveal .32s steps(4, end);
 }
 
-.scene--helpers .shaft,
-.scene--stand .shaft,
-.scene--office .shaft {
-  display: block;
+.world[data-stage="2"] .office-worker--helper,
+.world[data-stage="3"] .office-worker--helper,
+.world[data-stage="4"] .office-worker--helper,
+.world[data-stage="5"] .office-worker--helper,
+.world[data-stage="6"] .office-worker--helper {
+  animation: workerBob .8s steps(2, end) infinite;
+}
+
+.world[data-stage="4"] .office-worker--office,
+.world[data-stage="5"] .office-worker--office,
+.world[data-stage="6"] .office-worker--office {
+  animation: workerBob .9s .2s steps(2, end) infinite;
+}
+
+.world[data-stage="4"] .cash-machine,
+.world[data-stage="5"] .cash-machine,
+.world[data-stage="6"] .cash-machine {
+  animation: cashBlink 1.4s steps(2, end) infinite;
+}
+
+.world[data-stage="6"] .cityhall {
+  animation: cityhallVictory .7s steps(4, end) infinite alternate;
+}
+
+.world[data-stage="6"] .goal-tag {
+  background: var(--green);
+  color: #fff;
+}
+
+.world[data-stage="6"] .world-status {
+  background: var(--green-dark);
+}
+
+.world--stage-reveal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 29;
+  border: 5px solid rgba(255, 245, 154, .9);
+  box-shadow: inset 0 0 36px rgba(255, 236, 120, .28);
+  pointer-events: none;
+  animation: stageFlash .65s ease-out forwards;
+}
+
+.confetti-bit {
+  position: absolute;
+  top: -18px;
+  width: 8px;
+  height: 13px;
+  z-index: 35;
+  border: 2px solid var(--ink);
+  background: var(--yellow);
+  pointer-events: none;
+  animation: confettiFall 2.4s linear forwards;
 }
 
 .control-deck--solo {
@@ -1584,11 +1679,24 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
   display: none !important;
 }
 
+@keyframes stageFlash {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes confettiFall {
+  0% { transform: translate3d(0, -10px, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--drift), 620px, 0) rotate(540deg); opacity: 0; }
+}
+
 @media (max-width: 900px) {
   .world { height: 288px; }
-  .scene--helpers { height: 470px; }
-  .scene--stand { height: 610px; }
-  .scene--office { height: 750px; }
+  .world[data-stage="2"] { height: 470px; }
+  .world[data-stage="3"] { height: 610px; }
+  .world[data-stage="4"],
+  .world[data-stage="5"],
+  .world[data-stage="6"] { height: 750px; }
+
   .operations { top: 288px; }
   .room { left: 23%; width: 68%; }
   .room--helpers { top: 14px; }
@@ -1598,71 +1706,16 @@ button:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .52; tra
 
 @media (max-width: 650px) {
   .world { height: 252px; }
-  .scene--helpers { height: 430px; }
-  .scene--stand { height: 560px; }
-  .scene--office { height: 690px; }
+  .world[data-stage="2"] { height: 430px; }
+  .world[data-stage="3"] { height: 560px; }
+  .world[data-stage="4"],
+  .world[data-stage="5"],
+  .world[data-stage="6"] { height: 690px; }
+
   .operations { top: 252px; }
   .room { left: 24%; width: 72%; height: 112px; }
   .room--helpers { top: 12px; }
   .room--stand { top: 137px; }
   .room--office { top: 262px; }
   .control-deck--solo { grid-template-columns: 1fr; }
-}
-
-
-/* Keep ownership visuals strict: nothing appears merely because a later system exists. */
-.game-hud--compact {
-  grid-template-columns: minmax(220px, 1fr) 1.15fr 64px;
-}
-
-.scene--stand .helper--one,
-.scene--stand .helper--two,
-.scene--office .helper--one,
-.scene--office .helper--two,
-.scene--office .info-stand,
-.scene--office .passer--two {
-  display: none;
-}
-
-.scene--helpers .helper--one {
-  display: block;
-}
-
-.scene--helpers.scene--stand .helper--two {
-  display: block;
-}
-
-.scene--stand .info-stand,
-.scene--stand .passer--two {
-  display: block;
-}
-
-.scene:not(.scene--helpers) .room--helpers,
-.scene:not(.scene--stand) .room--stand,
-.scene:not(.scene--office) .room--office {
-  opacity: 0;
-  visibility: hidden;
-  filter: grayscale(.7);
-  transform: translateY(12px);
-}
-
-.scene--helpers .room--helpers,
-.scene--stand .room--stand,
-.scene--office .room--office {
-  opacity: 1;
-  visibility: visible;
-  filter: none;
-  transform: translateY(0);
-}
-
-@media (max-width: 900px) {
-  .game-hud--compact {
-    grid-template-columns: 1fr 1fr 58px;
-  }
-}
-
-@media (max-width: 650px) {
-  .game-hud--compact {
-    grid-template-columns: 1fr 1fr 48px;
-  }
 }
