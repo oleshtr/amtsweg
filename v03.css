@@ -429,7 +429,9 @@
 .station-build--office { left: 4%; bottom: 86px; }
 
 .game-button--primary { overflow: hidden; }
+/* Manual action is intentionally spammable; no progress/cooldown bar. */
 .action-cooldown {
+  display: none;
   position: absolute;
   left: 8px;
   right: 8px;
