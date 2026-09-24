@@ -649,3 +649,19 @@
   .ending { grid-template-columns: 58px 1fr; padding: 14px; }
   .ending__medal { transform: scale(.75); transform-origin: top left; }
 }
+
+
+/* The SVG city is the canonical V0.3 surface. Legacy V0.2 street actors are retired. */
+.v03-city-canvas {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: none;
+}
+.v03-surface > .townscape,
+.v03-surface > .candidate,
+.v03-surface > .flyer-stack,
+.v03-surface > .surface-strip,
+.v03-surface > .road {
+  display: none !important;
+}
