@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">AMTSWEG Character Sheet V1</title>
+  <desc id="desc">Pixel-art inspired character reference for candidate, helpers, pedestrians and office staff.</desc>
+  <style>
+    text { font-family: "Arial", sans-serif; fill: #182238; }
+    .title { font-size: 34px; font-weight: 800; letter-spacing: 1px; }
+    .subtitle { font-size: 16px; font-weight: 700; fill: #55657c; }
+    .label { font-size: 17px; font-weight: 800; }
+    .small { font-size: 13px; font-weight: 700; fill: #65748a; }
+    .panel { fill: #f5f2e8; stroke: #182238; stroke-width: 4; }
+    .chip { stroke: #182238; stroke-width: 3; }
+    .pixel { shape-rendering: crispEdges; }
+  </style>
+
+  <rect width="1600" height="900" fill="#d8e2e8"/>
+  <rect x="28" y="28" width="1544" height="844" rx="18" fill="#fffaf0" stroke="#182238" stroke-width="6"/>
+
+  <text x="62" y="82" class="title">AMTSWEG — CHARACTER SHEET V1</text>
+  <text x="62" y="112" class="subtitle">Deutsche Politik · Wahlkampf · Büro · seriös, erwachsen, charmant</text>
+
+  <rect class="panel" x="58" y="150" width="286" height="650" rx="14"/>
+  <rect class="panel" x="364" y="150" width="286" height="650" rx="14"/>
+  <rect class="panel" x="670" y="150" width="286" height="650" rx="14"/>
+  <rect class="panel" x="976" y="150" width="286" height="650" rx="14"/>
+  <rect class="panel" x="1282" y="150" width="260" height="650" rx="14"/>
+
+  <text x="82" y="190" class="label">KANDIDAT</text>
+  <text x="388" y="190" class="label">HELFER</text>
+  <text x="694" y="190" class="label">HELFERIN</text>
+  <text x="1000" y="190" class="label">PASSANT</text>
+  <text x="1306" y="190" class="label">BÜRO</text>
+
+  <g class="pixel" transform="translate(128 238)">
+    <rect x="22" y="0" width="70" height="18" fill="#3a2e2a"/><rect x="14" y="10" width="86" height="18" fill="#3a2e2a"/>
+    <rect x="20" y="24" width="72" height="68" fill="#d9a177" stroke="#182238" stroke-width="4"/>
+    <rect x="32" y="44" width="7" height="7" fill="#182238"/><rect x="73" y="44" width="7" height="7" fill="#182238"/>
+    <rect x="48" y="70" width="17" height="4" fill="#9b5e4a"/><rect x="43" y="92" width="28" height="18" fill="#c98d67"/>
+    <rect x="12" y="110" width="88" height="112" fill="#253a56" stroke="#182238" stroke-width="4"/>
+    <rect x="38" y="110" width="36" height="80" fill="#f4f1e8"/><polygon points="56,122 46,142 56,154 66,142" fill="#2f72aa"/>
+    <rect x="0" y="122" width="18" height="88" fill="#253a56" stroke="#182238" stroke-width="4"/><rect x="94" y="122" width="18" height="88" fill="#253a56" stroke="#182238" stroke-width="4"/>
+    <rect x="24" y="222" width="30" height="92" fill="#1f2d42" stroke="#182238" stroke-width="4"/><rect x="58" y="222" width="30" height="92" fill="#1f2d42" stroke="#182238" stroke-width="4"/>
+    <rect x="18" y="314" width="42" height="16" fill="#161c27"/><rect x="52" y="314" width="42" height="16" fill="#161c27"/>
+    <rect x="101" y="160" width="34" height="45" fill="#b24943" stroke="#182238" stroke-width="4"/>
+  </g>
+  <text x="84" y="614" class="small">Dunkler Anzug</text><text x="84" y="638" class="small">weißes Hemd · blaue Krawatte</text>
+  <text x="84" y="662" class="small">Mappe / Flyer / Smartphone</text><text x="84" y="704" class="label">Posen</text>
+  <text x="84" y="730" class="small">Idle · Walk · Talk · Work</text><text x="84" y="754" class="small">Hand Flyer · Phone</text>
+
+  <g class="pixel" transform="translate(434 238)">
+    <rect x="18" y="4" width="78" height="22" fill="#6c4e32"/><rect x="24" y="24" width="68" height="68" fill="#d7a17e" stroke="#182238" stroke-width="4"/>
+    <rect x="36" y="44" width="7" height="7" fill="#182238"/><rect x="73" y="44" width="7" height="7" fill="#182238"/>
+    <rect x="48" y="70" width="18" height="4" fill="#9b5e4a"/><rect x="42" y="92" width="30" height="18" fill="#c98d67"/>
+    <rect x="12" y="110" width="88" height="112" fill="#b9c7d6" stroke="#182238" stroke-width="4"/><rect x="28" y="110" width="56" height="42" fill="#eef2f5"/>
+    <rect x="0" y="122" width="18" height="88" fill="#b9c7d6" stroke="#182238" stroke-width="4"/><rect x="94" y="122" width="18" height="88" fill="#b9c7d6" stroke="#182238" stroke-width="4"/>
+    <rect x="24" y="222" width="30" height="92" fill="#34485e" stroke="#182238" stroke-width="4"/><rect x="58" y="222" width="30" height="92" fill="#34485e" stroke="#182238" stroke-width="4"/>
+    <rect x="18" y="314" width="42" height="16" fill="#202a34"/><rect x="52" y="314" width="42" height="16" fill="#202a34"/>
+    <rect x="-18" y="160" width="34" height="46" fill="#f8e7aa" stroke="#182238" stroke-width="4"/>
+  </g>
+  <text x="390" y="614" class="small">Business-Casual</text><text x="390" y="638" class="small">Overshirt / Hemd · dunkle Hose</text>
+  <text x="390" y="662" class="small">Klemmbrett / Flyer</text><text x="390" y="704" class="label">Posen</text>
+  <text x="390" y="730" class="small">Idle · Walk · Work</text><text x="390" y="754" class="small">Hand Flyer</text>
+
+  <g class="pixel" transform="translate(740 238)">
+    <rect x="20" y="0" width="72" height="18" fill="#5b382b"/><rect x="12" y="12" width="88" height="64" fill="#5b382b"/>
+    <rect x="24" y="26" width="68" height="70" fill="#ddb08b" stroke="#182238" stroke-width="4"/>
+    <rect x="37" y="47" width="7" height="7" fill="#182238"/><rect x="73" y="47" width="7" height="7" fill="#182238"/>
+    <rect x="49" y="74" width="18" height="4" fill="#a36955"/><rect x="43" y="96" width="30" height="16" fill="#cf9873"/>
+    <rect x="12" y="112" width="88" height="110" fill="#8b9db4" stroke="#182238" stroke-width="4"/><rect x="34" y="112" width="44" height="58" fill="#f4f1e8"/>
+    <rect x="0" y="124" width="18" height="86" fill="#8b9db4" stroke="#182238" stroke-width="4"/><rect x="94" y="124" width="18" height="86" fill="#8b9db4" stroke="#182238" stroke-width="4"/>
+    <rect x="24" y="222" width="30" height="92" fill="#26384d" stroke="#182238" stroke-width="4"/><rect x="58" y="222" width="30" height="92" fill="#26384d" stroke="#182238" stroke-width="4"/>
+    <rect x="18" y="314" width="42" height="16" fill="#202a34"/><rect x="52" y="314" width="42" height="16" fill="#202a34"/>
+    <rect x="102" y="158" width="28" height="52" fill="#2f72aa" stroke="#182238" stroke-width="4"/>
+  </g>
+  <text x="696" y="614" class="small">Blazer / Bluse</text><text x="696" y="638" class="small">professionell, aber beweglich</text>
+  <text x="696" y="662" class="small">Smartphone / Flyer</text><text x="696" y="704" class="label">Posen</text>
+  <text x="696" y="730" class="small">Idle · Walk · Work</text><text x="696" y="754" class="small">Phone · Hand Flyer</text>
+
+  <g class="pixel" transform="translate(1046 238)">
+    <rect x="22" y="4" width="70" height="18" fill="#2c2a2a"/><rect x="24" y="24" width="68" height="68" fill="#b97f5f" stroke="#182238" stroke-width="4"/>
+    <rect x="36" y="45" width="7" height="7" fill="#182238"/><rect x="73" y="45" width="7" height="7" fill="#182238"/>
+    <rect x="12" y="110" width="88" height="112" fill="#b45e50" stroke="#182238" stroke-width="4"/>
+    <rect x="0" y="122" width="18" height="88" fill="#b45e50" stroke="#182238" stroke-width="4"/><rect x="94" y="122" width="18" height="88" fill="#b45e50" stroke="#182238" stroke-width="4"/>
+    <rect x="24" y="222" width="30" height="92" fill="#4f5b64" stroke="#182238" stroke-width="4"/><rect x="58" y="222" width="30" height="92" fill="#4f5b64" stroke="#182238" stroke-width="4"/>
+    <rect x="18" y="314" width="42" height="16" fill="#23272a"/><rect x="52" y="314" width="42" height="16" fill="#23272a"/>
+    <rect x="97" y="150" width="40" height="64" rx="4" fill="#776248" stroke="#182238" stroke-width="4"/>
+  </g>
+  <text x="1002" y="614" class="small">Alltagskleidung</text><text x="1002" y="638" class="small">Jacke / Pullover / Tasche</text>
+  <text x="1002" y="662" class="small">bewusst weniger formell</text><text x="1002" y="704" class="label">Posen</text>
+  <text x="1002" y="730" class="small">Idle · Walk</text><text x="1002" y="754" class="small">Receive Flyer</text>
+
+  <g class="pixel" transform="translate(1328 238)">
+    <rect x="16" y="0" width="76" height="18" fill="#4a3328"/><rect x="22" y="24" width="68" height="68" fill="#d2a17f" stroke="#182238" stroke-width="4"/>
+    <rect x="34" y="45" width="7" height="7" fill="#182238"/><rect x="71" y="45" width="7" height="7" fill="#182238"/>
+    <rect x="10" y="110" width="90" height="112" fill="#405a73" stroke="#182238" stroke-width="4"/><rect x="34" y="110" width="42" height="62" fill="#f4f1e8"/>
+    <rect x="24" y="222" width="30" height="92" fill="#27394b" stroke="#182238" stroke-width="4"/><rect x="58" y="222" width="30" height="92" fill="#27394b" stroke="#182238" stroke-width="4"/>
+    <rect x="18" y="314" width="42" height="16" fill="#202a34"/><rect x="52" y="314" width="42" height="16" fill="#202a34"/>
+    <rect x="96" y="150" width="58" height="42" fill="#34485e" stroke="#182238" stroke-width="4"/><rect x="102" y="156" width="46" height="28" fill="#b8d8eb"/>
+  </g>
+  <text x="1308" y="614" class="small">Sakko / Hemd</text><text x="1308" y="638" class="small">Laptop / Akte / Telefon</text>
+  <text x="1308" y="662" class="small">ruhiger Arbeitslook</text><text x="1308" y="704" class="label">Posen</text>
+  <text x="1308" y="730" class="small">Idle · Work</text><text x="1308" y="754" class="small">Laptop · Phone</text>
+
+  <text x="62" y="838" class="label">Palette:</text>
+  <rect class="chip" x="150" y="816" width="55" height="28" fill="#182238"/>
+  <rect class="chip" x="218" y="816" width="55" height="28" fill="#253a56"/>
+  <rect class="chip" x="286" y="816" width="55" height="28" fill="#2f72aa"/>
+  <rect class="chip" x="354" y="816" width="55" height="28" fill="#8b9db4"/>
+  <rect class="chip" x="422" y="816" width="55" height="28" fill="#f4f1e8"/>
+  <rect class="chip" x="490" y="816" width="55" height="28" fill="#d9a177"/>
+  <rect class="chip" x="558" y="816" width="55" height="28" fill="#b45e50"/>
+  <text x="646" y="838" class="small">neutrales, fiktionales Kampagnenbranding</text>
+</svg>
