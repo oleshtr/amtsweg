@@ -59,7 +59,7 @@ function check(name, condition) {
       }
     }
     check('level 10 is first visible stand milestone', await page.locator('[data-stand]').getAttribute('data-tier') === '1');
-    check('stand can keep upgrading after level 10', (await read()).standLevel === 10 && !(await page.locator('[data-action="upgrade"]').getAttribute('data-upgrade-cost') === 'MAX'));
+    check('stand can keep upgrading after level 10', (await read()).standLevel === 10 && (await page.locator('[data-upgrade-cost]').innerText()) !== 'MAX');
 
     const xs = [];
     for (let i = 0; i < 4; i++) {
