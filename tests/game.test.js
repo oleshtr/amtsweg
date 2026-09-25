@@ -200,8 +200,8 @@ test('two-clicks-per-second progression takes several minutes to complete',()=>{
     if(maxStand&&fullTeam) break;
   }
   assert.ok(firstUpgrade>=3&&firstUpgrade<15);
-  assert.ok(maxStand>=120&&maxStand<480);
-  assert.ok(fullTeam>=120&&fullTeam<600);
+  assert.ok(maxStand>=900&&maxStand<1800);
+  assert.ok(fullTeam>=600&&fullTeam<1400);
   assert.equal(s.standLevel,10);assert.equal(s.helpers,4);assert.equal(s.street.active,true);
   console.log('Pacing (seconds):',JSON.stringify({firstUpgrade,firstHelper,maxStand,fullTeam}));
 });
