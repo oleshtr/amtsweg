@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">AMTSWEG Street Stand Progression V1</title>
+  <desc id="desc">Five visual upgrade stages from improvised campaign table to professional campaign pavilion.</desc>
+  <style>
+    text { font-family: Arial, sans-serif; fill: #182238; }
+    .title { font-size: 34px; font-weight: 800; }
+    .label { font-size: 20px; font-weight: 800; }
+    .small { font-size: 14px; font-weight: 700; fill: #5f6c7d; }
+    .panel { fill: #eef3f5; stroke: #182238; stroke-width: 4; }
+    .pixel { shape-rendering: crispEdges; }
+  </style>
+  <rect width="1600" height="900" fill="#d8e2e8"/>
+  <rect x="28" y="28" width="1544" height="844" rx="18" fill="#fffaf0" stroke="#182238" stroke-width="6"/>
+  <text x="62" y="82" class="title">AMTSWEG — STRASSENSTAND PROGRESSION V1</text>
+  <text x="62" y="112" class="small">Jedes Upgrade verändert die Welt sichtbar. Keine reine Zahlenprogression.</text>
+
+  <g transform="translate(52 160)">
+    <rect class="panel" x="0" y="0" width="286" height="610" rx="14"/>
+    <text x="20" y="42" class="label">LEVEL 1</text><text x="20" y="68" class="small">Tapeziertisch</text>
+    <g class="pixel" transform="translate(36 198)">
+      <rect x="20" y="120" width="180" height="20" fill="#c59a68" stroke="#182238" stroke-width="5"/>
+      <rect x="36" y="140" width="15" height="90" fill="#6e747a"/><rect x="168" y="140" width="15" height="90" fill="#6e747a"/>
+      <rect x="75" y="105" width="42" height="10" fill="#f5df9f"/><rect x="122" y="105" width="42" height="10" fill="#f5df9f"/>
+      <rect x="4" y="174" width="36" height="48" fill="#d7c7a2" stroke="#182238" stroke-width="4"/>
+    </g>
+    <text x="20" y="500" class="small">• 1 Figur</text><text x="20" y="526" class="small">• Flyer-Stapel</text><text x="20" y="552" class="small">• bewusst improvisiert</text>
+
+    <rect class="panel" x="306" y="0" width="286" height="610" rx="14"/>
+    <text x="326" y="42" class="label">LEVEL 3</text><text x="326" y="68" class="small">Ordentlicher Infotisch</text>
+    <g class="pixel" transform="translate(332 170)">
+      <rect x="22" y="135" width="180" height="20" fill="#c59a68" stroke="#182238" stroke-width="5"/>
+      <rect x="36" y="155" width="15" height="90" fill="#6e747a"/><rect x="172" y="155" width="15" height="90" fill="#6e747a"/>
+      <rect x="60" y="155" width="100" height="48" fill="#2f72aa" stroke="#182238" stroke-width="4"/>
+      <text x="79" y="186" font-size="16" font-weight="800" fill="#ffffff">AMTSWEG</text>
+      <rect x="208" y="70" width="10" height="175" fill="#6b6f76"/><rect x="218" y="70" width="48" height="82" fill="#f4f1e8" stroke="#182238" stroke-width="4"/>
+      <rect x="228" y="82" width="28" height="38" fill="#2f72aa"/><circle cx="242" cy="133" r="7" fill="#b45e50"/>
+    </g>
+    <text x="326" y="500" class="small">• Tischverkleidung</text><text x="326" y="526" class="small">• erstes Plakat</text><text x="326" y="552" class="small">• Materialkiste</text>
+
+    <rect class="panel" x="612" y="0" width="286" height="610" rx="14"/>
+    <text x="632" y="42" class="label">LEVEL 5</text><text x="632" y="68" class="small">Roll-up + Ausstattung</text>
+    <g class="pixel" transform="translate(638 150)">
+      <rect x="22" y="160" width="180" height="20" fill="#c59a68" stroke="#182238" stroke-width="5"/>
+      <rect x="35" y="180" width="15" height="86" fill="#6e747a"/><rect x="174" y="180" width="15" height="86" fill="#6e747a"/>
+      <rect x="58" y="180" width="105" height="48" fill="#2f72aa" stroke="#182238" stroke-width="4"/>
+      <text x="76" y="210" font-size="16" font-weight="800" fill="#ffffff">AMTSWEG</text>
+      <rect x="208" y="44" width="12" height="222" fill="#616870"/><rect x="220" y="44" width="56" height="136" fill="#f4f1e8" stroke="#182238" stroke-width="4"/>
+      <rect x="232" y="58" width="32" height="44" fill="#2f72aa"/><rect x="230" y="116" width="36" height="8" fill="#b45e50"/>
+      <rect x="4" y="204" width="40" height="58" fill="#d9c49a" stroke="#182238" stroke-width="4"/>
+    </g>
+    <text x="632" y="500" class="small">• Roll-up</text><text x="632" y="526" class="small">• mehr Flyer</text><text x="632" y="552" class="small">• zwei Arbeitspositionen</text>
+
+    <rect class="panel" x="918" y="0" width="286" height="610" rx="14"/>
+    <text x="938" y="42" class="label">LEVEL 10</text><text x="938" y="68" class="small">Pavillon</text>
+    <g class="pixel" transform="translate(944 126)">
+      <polygon points="16,90 112,30 208,90" fill="#2f72aa" stroke="#182238" stroke-width="5"/>
+      <rect x="24" y="90" width="8" height="210" fill="#26394d"/><rect x="192" y="90" width="8" height="210" fill="#26394d"/>
+      <rect x="38" y="196" width="150" height="18" fill="#c59a68" stroke="#182238" stroke-width="4"/>
+      <rect x="54" y="214" width="14" height="68" fill="#6e747a"/><rect x="160" y="214" width="14" height="68" fill="#6e747a"/>
+      <rect x="76" y="214" width="76" height="42" fill="#2f72aa" stroke="#182238" stroke-width="4"/>
+      <text x="84" y="240" font-size="13" font-weight="800" fill="#ffffff">AMTSWEG</text>
+      <rect x="46" y="126" width="54" height="52" fill="#f4f1e8" stroke="#182238" stroke-width="4"/><rect x="126" y="126" width="54" height="52" fill="#f4f1e8" stroke="#182238" stroke-width="4"/>
+    </g>
+    <text x="938" y="500" class="small">• Überdachung</text><text x="938" y="526" class="small">• zwei Helfer sichtbar</text><text x="938" y="552" class="small">• Banner / Plakate</text>
+
+    <rect class="panel" x="1224" y="0" width="286" height="610" rx="14"/>
+    <text x="1244" y="42" class="label">LEVEL 20</text><text x="1244" y="68" class="small">Kampagnenstand</text>
+    <g class="pixel" transform="translate(1248 112)">
+      <polygon points="4,88 110,18 216,88" fill="#253a56" stroke="#182238" stroke-width="5"/>
+      <rect x="16" y="88" width="8" height="220" fill="#182238"/><rect x="196" y="88" width="8" height="220" fill="#182238"/>
+      <rect x="24" y="96" width="180" height="32" fill="#2f72aa" stroke="#182238" stroke-width="4"/>
+      <text x="63" y="118" font-size="15" font-weight="800" fill="#ffffff">AMTSWEG</text>
+      <rect x="38" y="198" width="150" height="20" fill="#bf9364" stroke="#182238" stroke-width="4"/>
+      <rect x="54" y="218" width="14" height="76" fill="#666d73"/><rect x="160" y="218" width="14" height="76" fill="#666d73"/>
+      <rect x="78" y="218" width="72" height="48" fill="#2f72aa" stroke="#182238" stroke-width="4"/>
+      <circle cx="48" cy="148" r="10" fill="#f0c14d" stroke="#182238" stroke-width="3"/><circle cx="180" cy="148" r="10" fill="#f0c14d" stroke="#182238" stroke-width="3"/>
+      <rect x="212" y="104" width="8" height="190" fill="#626971"/><rect x="220" y="104" width="40" height="108" fill="#f4f1e8" stroke="#182238" stroke-width="4"/>
+      <rect x="-20" y="236" width="54" height="54" fill="#d6c093" stroke="#182238" stroke-width="4"/>
+    </g>
+    <text x="1244" y="500" class="small">• Banner + Licht</text><text x="1244" y="526" class="small">• mehrere Arbeitsplätze</text><text x="1244" y="552" class="small">• Endstufe des Standorts</text>
+  </g>
+
+  <text x="62" y="826" class="small">Regel: Jede Stufe behält erkennbare Elemente der vorherigen Stufe und ergänzt sichtbar neue Ausstattung.</text>
+</svg>
