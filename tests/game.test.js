@@ -185,9 +185,9 @@ test('flyer recipient approaches, accepts flyer and continues walking',()=>{
   assert.equal(World.interactionAt(.9).walking,true);
   assert.ok(World.interactionAt(1).x>World.interactionAt(.7).x);
 });
-test('two-clicks-per-second progression takes several minutes to complete',()=>{
+test('two-clicks-per-second progression takes well over ten minutes to complete',()=>{
   let s=fresh(), elapsed=0, firstUpgrade, firstHelper, maxStand, fullTeam;
-  for(let i=0;i<1200;i++) {
+  for(let i=0;i<4000;i++) {
     if(Game.canUpgrade(s)) {
       s=Game.upgradeStand(s);firstUpgrade??=elapsed;
       if(s.standLevel===Game.CONFIG.maxLevel) maxStand=elapsed;
