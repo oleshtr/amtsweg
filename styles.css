@@ -37,7 +37,7 @@ h1 { font-size: clamp(17px, 1.55vw, 23px); font-weight: 550; letter-spacing: -.0
 .scenery svg { width: 2400px; height: 540px; display: block; }
 .district-label { position: absolute; top: 26px; font: 700 11px "Courier New", monospace; letter-spacing: .19em; color: #4f776e; }
 .district-label span { display: block; font: 11px "Segoe UI", sans-serif; letter-spacing: 0; margin-top: 6px; color: #68867b; }
-.district-label--home { left: 60px; }
+.district-label--home { display: none; }
 .district-label--office { left: 1430px; }
 .district-label--office, .office-site, .marker--office { display: none; }
 .site-hit { position: absolute; background: transparent; border: 0; z-index: 8; }
@@ -266,8 +266,8 @@ body { overflow: hidden; background: #294a41; }
   z-index: 14;
   top: 18px;
   left: 350px;
-  width: 365px;
-  padding: 10px 13px 9px;
+  width: 390px;
+  padding: 10px 13px 10px;
   color: #29483f;
   background: #f8f1d9e8;
   border: 2px solid #526f5e;
@@ -276,9 +276,9 @@ body { overflow: hidden; background: #294a41; }
   backdrop-filter: blur(3px);
 }
 .scene-status .eyebrow { color: #557469; }
-.scene-status__copy { display: flex; align-items: baseline; gap: 9px; }
+.scene-status__copy { display: block; }
 .scene-status h2 { margin: 3px 0 2px; font: 700 15px/1.2 "Courier New", monospace; letter-spacing: -.04em; white-space: nowrap; }
-.scene-status p { overflow: hidden; margin: 0; color: #61766c; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.scene-status p { margin: 1px 0 0; color: #61766c; font-size: 10px; line-height: 1.25; white-space: normal; }
 .scene-status .production { margin-top: 4px; font-size: 9px; }
 .scene-status .panel-progress { margin-top: 5px; background: #bfcbb9; }
 .scene-status .panel-progress i { background: #d58a48; }
@@ -287,12 +287,12 @@ body { overflow: hidden; background: #294a41; }
 .in-world-upgrade {
   position: absolute;
   z-index: 17;
-  top: 325px;
-  width: 56px;
-  height: 56px;
+  top: 329px;
+  width: 50px;
+  height: 50px;
   min-height: 0;
-  padding: 5px;
-  border: 3px solid #f0dfaa;
+  padding: 4px;
+  border: 2px solid #f0dfaa;
   border-radius: 50%;
   color: #fff0c3;
   background: #375f52;
@@ -300,21 +300,21 @@ body { overflow: hidden; background: #294a41; }
   text-align: center;
   transition: transform .12s ease, filter .12s ease;
 }
-.upgrade-stand { left: 357px; }
-.upgrade-helper { left: 621px; }
+.upgrade-stand { left: 338px; }
+.upgrade-helper { left: 648px; }
 .in-world-upgrade:not(:disabled):hover,
 .in-world-upgrade:not(:disabled):focus-visible { filter: brightness(1.08); transform: translateY(-2px); }
 .in-world-upgrade:disabled { filter: saturate(.35); opacity: .62; }
 .upgrade-icon {
   display: grid;
   place-items: center;
-  width: 29px;
-  height: 29px;
+  width: 25px;
+  height: 25px;
   margin: 0 auto;
   border: 0;
   background: transparent;
   color: #fff1c8;
-  font: 900 25px/1 monospace;
+  font: 900 22px/1 monospace;
 }
 .upgrade-icon--tools { position: relative; font-size: 0; }
 .upgrade-icon--tools:before,
@@ -324,7 +324,7 @@ body { overflow: hidden; background: #294a41; }
 .in-world-upgrade strong {
   position: absolute;
   left: 50%;
-  bottom: 66px;
+  bottom: 59px;
   width: 112px;
   padding: 5px 6px;
   color: #fff4d4;
@@ -340,8 +340,8 @@ body { overflow: hidden; background: #294a41; }
 .upgrade-cost {
   position: absolute;
   left: 50%;
-  bottom: -10px;
-  min-width: 42px;
+  bottom: -11px;
+  min-width: 46px;
   padding: 2px 4px;
   color: #354f47;
   background: #f0cf7c;
@@ -430,12 +430,12 @@ body { overflow: hidden; background: #294a41; }
   .chapter-heading { top: 69px; left: 9px; padding: 6px 8px; }
   .chapter-heading .eyebrow { display: none; }
   .chapter-heading h1 { margin: 0; max-width: 240px; font-size: 12px; }
-  .scene-status { top: 13px; left: 352px; width: 348px; padding: 8px 10px; }
+  .scene-status { top: 13px; left: 352px; width: 370px; padding: 8px 10px; }
   .scene-status__copy p { display: none; }
   .scene-status h2 { font-size: 13px; }
   .scene-status .production { font-size: 8px; }
-  .upgrade-stand { left: 357px; }
-  .upgrade-helper { left: 621px; }
+  .upgrade-stand { left: 338px; }
+  .upgrade-helper { left: 648px; }
   .flyer-action { left: 426px; }
   .journey { min-height: 38px; padding: 6px 10px; }
 }
