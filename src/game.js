@@ -55,8 +55,9 @@
     next.savedAt = clamp(s.savedAt ?? s.lastUpdatedAt ?? next.savedAt, 0, Number.MAX_SAFE_INTEGER);
     return next;
   }
-  const helperCost = state => Math.round(18 * 2.2 ** state.helpers);
-  const upgradeCost = state => Math.round(8 * 1.65 ** (state.standLevel - 1));
+  // Keep the first purchase reachable, then make later street upgrades real medium-term goals.
+  const helperCost = state => Math.round(50 * 3.3 ** state.helpers);
+  const upgradeCost = state => Math.round(10 * 2.1 ** (state.standLevel - 1));
   const officeUpgradeCost = state => Math.round(100 * 1.65 ** (state.office.level - 1));
   const canBuyHelper = s => s.helpers < CONFIG.maxHelpers && s.supporters >= helperCost(s);
   const canUpgrade = s => s.standLevel < CONFIG.maxLevel && s.supporters >= upgradeCost(s);
