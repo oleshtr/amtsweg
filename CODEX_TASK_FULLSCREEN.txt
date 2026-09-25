@@ -1,0 +1,111 @@
+Du arbeitest im lokalen Repo:
+
+C:\Users\olesc\Documents\GitHub\amtsweg
+
+Branch:
+astra-horizontal-world
+
+WICHTIG:
+- Nicht auf main wechseln.
+- Nicht pullen.
+- Nicht pushen.
+- Nicht committen.
+- Keine neuen Gebiete bauen.
+- Kein Wahlkreisbüro ausbauen.
+- Keine Gameplay- oder Balancing-Logik ändern.
+- Bestehende funktionierende Logik für Flyer, Stand-Upgrades und Helfer beibehalten.
+- Fokus ausschließlich auf Layout, Immersion und die Darstellung der bestehenden Controls.
+- Vor Änderungen zuerst aktuellen DOM-/CSS-Stand lesen.
+
+AKTUELLER STAND / PROBLEME:
+1. Der In-World-Button „FLYER VERTEILEN“ flackert bzw. pulsiert zu stark und dauerhaft.
+2. „Stand verbessern“ und „Helfer einstellen“ sind zwar in der Welt, wirken aber als große gelbe UI-Schilder und sehen nicht wie echte Game-Objekte aus.
+3. Die Spielwelt ist weiterhin in einen großen hellen Webseitenrahmen eingebettet. Es gibt zu viel beige/weiße Fläche oben und unten.
+4. Ziel war eine immersive Game-Ansicht, bei der die Welt den Bildschirm weitgehend ausfüllt.
+
+ZIEL 1: GAME-STAGE MUSS DEN VIEWPORT DOMINIEREN
+- Die Spielansicht soll auf Desktop mindestens nahezu den gesamten sichtbaren Browserbereich einnehmen.
+- Nutze viewport-orientiertes Layout (z. B. min-height / height mit 100vh, soweit sinnvoll).
+- Der Stadt-/Straßenbereich soll deutlich größer und präsenter werden.
+- Entferne große leere beige/weiße Außenflächen.
+- Kein Eindruck mehr von „Website mit eingebettetem Spielkasten“.
+- Die Spielfläche soll die visuelle Hauptfläche sein.
+- Das HUD darf als kompakte Overlay-/Topbar erhalten bleiben.
+- Kapitel-/Ortstext stark komprimieren oder als kleines Overlay in/über der Szene darstellen.
+- Unterhalb der Szene keine große leere Fläche erzeugen.
+- Bestehenden Astra-Farbstil beibehalten, aber Hintergrund außerhalb der Szene so integrieren, dass kein harter heller Webseitenrand dominiert.
+
+ZIEL 2: FLYER-BUTTON NICHT MEHR FLACKERN
+- Entferne jede dauerhafte Animation, die wie Flackern/Blinken wirkt.
+- Kein permanentes starkes Scaling oder Helligkeitswechsel.
+- Idle-Zustand ruhig halten.
+- Optional nur sehr subtile Bewegung, z. B. 1–2 px langsames Bobbing, wenn es wirklich ruhig aussieht.
+- Deutliches visuelles Feedback nur beim Klick:
+  - kurzer Press-/Pop-Effekt
+  - +X Unterstützer-Partikel
+  - ggf. sehr kurze Flyer-Bewegung
+- Hover darf leicht reagieren, aber nicht blinken.
+
+ZIEL 3: UPGRADE-CONTROLS ALS KLEINE IN-WORLD-OBJEKTE
+- Entferne die zwei großen gelben Schilder/Karten für:
+  - Stand verbessern
+  - Helfer einstellen
+- Ersetze sie durch wesentlich kleinere, glaubwürdige In-World-Interaktionen direkt am Straßenstand.
+
+Beispielrichtung:
+- „Stand verbessern“:
+  kleines Werkzeug-/Hammer-/Schraubenschlüssel-Symbol oder kleines Upgrade-Badge direkt am Stand
+- „Helfer einstellen“:
+  kleines Personen-Plus-Symbol oder kleines Team-Badge in unmittelbarer Nähe des Standes
+
+Anforderungen:
+- Sie sollen eher wie Game-Hotspots/Objekte wirken als wie Web-Buttons.
+- Deutlich kleiner als aktuell.
+- Kosten weiterhin sichtbar, aber kompakt.
+- Label darf kurz sein.
+- Bei Hover kann ein kleiner Tooltip erscheinen.
+- Kein riesiges Panel.
+- Kein großer gelber Kasten.
+- Pixel-/Astra-Look beibehalten.
+
+ZIEL 4: NUR EIN PROMINENTER BUTTON
+- Der einzige große und prominente Aktionsbutton bleibt:
+  „FLYER VERTEILEN“
+- Stand-Upgrade und Helfer sind sekundäre kleine Interaktionen in der Welt.
+- Keine weitere große Button-Leiste außerhalb der Szene.
+
+ZIEL 5: KOMPAKTER HUD
+- Unterstützerzahl und automatische Rate oben sichtbar lassen.
+- Reset klein lassen.
+- Branding darf bleiben, aber kompakter.
+- Alles soll sich wie HUD eines Spiels anfühlen, nicht wie Website-Header.
+- Wenn möglich HUD optisch näher an/über die Spielwelt bringen.
+
+NICHT TUN:
+- Keine neue Zone.
+- Kein horizontales Scrollen reaktivieren.
+- Keine neue Progressionslogik.
+- Keine neuen Ressourcen.
+- Keine Änderung an Klick-/Helfer-Balance.
+- Keine große JS-Refaktorierung, wenn CSS/DOM-Anpassungen reichen.
+
+QUALITÄTSZIEL:
+Nach dem Reload soll der erste Eindruck sein:
+„Das ist ein kleines Browser-Idle-Game“
+und nicht:
+„Das ist eine Webseite mit einem Spiel in einem Kasten.“
+
+Der komplette sichtbare Screen soll wesentlich stärker von der Spielwelt gefüllt sein.
+
+TESTS:
+- npm run check ausführen.
+- Bestehende Funktionalität manuell logisch prüfen.
+- Node 17 beachten; npm test ist lokal kein Pflichtkriterium.
+
+AM ENDE:
+1. kurz erklären, wie der Viewport nun gefüllt wird,
+2. erklären, wie der Flyer-Button beruhigt wurde,
+3. erklären, wie die beiden Upgrades kleiner und game-artiger integriert wurden,
+4. geänderte Dateien nennen,
+5. git diff --stat anzeigen,
+6. NICHT committen.

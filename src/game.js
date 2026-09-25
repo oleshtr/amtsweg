@@ -4,218 +4,140 @@
   if (root) root.AmtswegGame = api;
 })(typeof window !== 'undefined' ? window : globalThis, function () {
   'use strict';
-
   const CONFIG = Object.freeze({
-    saveKey: 'amtsweg-v0.1-save',
-    tickMs: 250,
-    flyerSupporters: 1,
-    donationUnlockSupporters: 10,
-    donationClickEuros: 2,
-    helper: Object.freeze({
-      unlockEuros: 12,
-      baseCost: 20,
-      costGrowth: 1.55,
-      supportersPerSecond: 0.8,
-    }),
-    stand: Object.freeze({
-      unlockSupporters: 35,
-      cost: 55,
-      supportersPerSecond: 2.2,
-      flyerBonus: 1,
-    }),
-    office: Object.freeze({
-      unlockSupporters: 110,
-      cost: 140,
-      supportersPerSecond: 4.5,
-      eurosPerSecond: 1.2,
-    }),
-    election: Object.freeze({
-      unlockSupporters: 280,
-      entryCost: 180,
-      targetSupporters: 350,
-    }),
+    version: 2, saveKey: 'amtsweg-horizontal-v2', legacyKey: 'amtsweg-v0.1-save',
+    maxHelpers: 4, maxLevel: 10, officeCost: 250, buildSeconds: 5, offlineLimit: 8 * 3600,
   });
-
-  function round(value, places = 2) {
-    const factor = 10 ** places;
-    return Math.round((value + Number.EPSILON) * factor) / factor;
-  }
-
+  const finite = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, finite(value, min)));
+  const money = value => clamp(value, 0, 1e12);
   function createInitialState() {
-    return {
-      supporters: 0,
-      euros: 0,
-      helpers: 0,
-      standOwned: false,
-      officeOwned: false,
-      electionFinished: false,
-      startedAt: Date.now(),
-      lastUpdatedAt: Date.now(),
-    };
+    return { version: 2, supporters: 0, totalSupporters: 0, helpers: 0, standLevel: 1,
+      street: { active: false, elapsed: 0, cycles: 0 },
+      office: { phase: 'locked', buildRemaining: 0, elapsed: 0, cycles: 0, level: 1 },
+      savedAt: Date.now() };
   }
-
-  function normalizeState(input) {
-    const base = createInitialState();
-    const source = input && typeof input === 'object' ? input : {};
-    return {
-      supporters: Math.max(0, Number(source.supporters) || 0),
-      euros: Math.max(0, Number(source.euros) || 0),
-      helpers: Math.max(0, Math.floor(Number(source.helpers) || 0)),
-      standOwned: Boolean(source.standOwned),
-      officeOwned: Boolean(source.officeOwned),
-      electionFinished: Boolean(source.electionFinished),
-      startedAt: Number(source.startedAt) || base.startedAt,
-      lastUpdatedAt: Number(source.lastUpdatedAt) || base.lastUpdatedAt,
-    };
+  function standStats(state) {
+    return { duration: Math.max(3, 4 - (state.standLevel - 1) * .08 - Math.max(0, state.helpers - 1) * .08),
+      output: state.helpers };
   }
-
-  function helperCost(state) {
-    return Math.round(CONFIG.helper.baseCost * CONFIG.helper.costGrowth ** state.helpers);
-  }
-
   function flyerGain(state) {
-    return CONFIG.flyerSupporters + (state.standOwned ? CONFIG.stand.flyerBonus : 0);
+    const level = Math.floor(clamp(state.standLevel, 1, CONFIG.maxLevel));
+    return Math.max(1, Math.floor((level - 1) / 2)) + (level === CONFIG.maxLevel ? 1 : 0);
   }
-
-  function supporterRate(state) {
-    return round(
-      state.helpers * CONFIG.helper.supportersPerSecond +
-        (state.standOwned ? CONFIG.stand.supportersPerSecond : 0) +
-        (state.officeOwned ? CONFIG.office.supportersPerSecond : 0),
-      3,
-    );
+  function officeStats(state) {
+    return { duration: 8, output: 18 + (state.office.level - 1) * 10 };
   }
-
-  function euroRate(state) {
-    return state.officeOwned ? CONFIG.office.eurosPerSecond : 0;
+  function standTier(state) {
+    return state.standLevel >= 10 ? 3 : state.standLevel >= 5 ? 2 : state.standLevel >= 2 ? 1 : 0;
   }
-
-  function unlocks(state) {
-    return {
-      donations: state.supporters >= CONFIG.donationUnlockSupporters || state.helpers > 0 || state.standOwned || state.officeOwned,
-      helper: state.euros >= CONFIG.helper.unlockEuros || state.helpers > 0 || state.standOwned || state.officeOwned,
-      stand: state.supporters >= CONFIG.stand.unlockSupporters || state.standOwned || state.officeOwned,
-      office: state.supporters >= CONFIG.office.unlockSupporters || state.officeOwned,
-      election:
-        (state.officeOwned && state.supporters >= CONFIG.election.unlockSupporters) ||
-        state.electionFinished,
-    };
+  function normalizeState(input) {
+    const s = input && typeof input === 'object' ? input : {};
+    const next = createInitialState();
+    const legacy = s.version !== CONFIG.version;
+    next.supporters = money(s.supporters);
+    next.helpers = Math.floor(clamp(s.helpers, 0, CONFIG.maxHelpers));
+    next.standLevel = Math.floor(clamp(legacy ? (s.standOwned ? 5 : 1) : s.standLevel, 1, CONFIG.maxLevel));
+    // Old currency is converted once; the original save is never overwritten.
+    if (legacy) next.supporters = money(next.supporters + money(s.euros));
+    next.totalSupporters = Math.max(next.supporters, money(s.totalSupporters));
+    const street = s.street || {};
+    next.street.active = next.helpers > 0;
+    next.street.cycles = Math.floor(money(street.cycles));
+    next.street.elapsed = next.street.active ? clamp(street.elapsed, 0, standStats(next).duration - 1e-9) : 0;
+    const office = s.office || {};
+    next.office.phase = legacy ? (s.officeOwned ? 'ready' : 'locked') :
+      (['locked', 'building', 'ready'].includes(office.phase) ? office.phase : 'locked');
+    next.office.level = Math.floor(clamp(office.level, 1, CONFIG.maxLevel));
+    next.office.cycles = Math.floor(money(office.cycles));
+    next.office.buildRemaining = next.office.phase === 'building' ? clamp(office.buildRemaining, 0, CONFIG.buildSeconds) : 0;
+    next.office.elapsed = next.office.phase === 'ready' ? clamp(office.elapsed, 0, officeStats(next).duration - 1e-9) : 0;
+    next.savedAt = clamp(s.savedAt ?? s.lastUpdatedAt ?? next.savedAt, 0, Number.MAX_SAFE_INTEGER);
+    return next;
   }
-
-  function worldStage(state) {
-    const next = normalizeState(state);
-    if (next.electionFinished) return 6;
-    if (unlocks(next).election) return 5;
-    if (next.officeOwned) return 4;
-    if (next.standOwned) return 3;
-    if (next.helpers > 0) return 2;
-    if (unlocks(next).donations) return 1;
-    return 0;
-  }
-
-  function canBuyHelper(state) {
-    return state.euros >= helperCost(state);
-  }
-
-  function canBuyStand(state) {
-    return !state.standOwned && state.euros >= CONFIG.stand.cost;
-  }
-
-  function canBuyOffice(state) {
-    return !state.officeOwned && state.euros >= CONFIG.office.cost;
-  }
-
-  function canRunElection(state) {
-    return (
-      !state.electionFinished &&
-      state.officeOwned &&
-      state.supporters >= CONFIG.election.targetSupporters &&
-      state.euros >= CONFIG.election.entryCost
-    );
-  }
-
+  const helperCost = state => Math.round(18 * 2.2 ** state.helpers);
+  const upgradeCost = state => Math.round(8 * 1.65 ** (state.standLevel - 1));
+  const officeUpgradeCost = state => Math.round(100 * 1.65 ** (state.office.level - 1));
+  const canBuyHelper = s => s.helpers < CONFIG.maxHelpers && s.supporters >= helperCost(s);
+  const canUpgrade = s => s.standLevel < CONFIG.maxLevel && s.supporters >= upgradeCost(s);
+  const canBuyOffice = s => s.office.phase === 'locked' && s.supporters >= CONFIG.officeCost;
+  const canUpgradeOffice = s => s.office.phase === 'ready' && s.office.level < CONFIG.maxLevel && s.supporters >= officeUpgradeCost(s);
   function distributeFlyer(state) {
     const next = normalizeState(state);
-    next.supporters = round(next.supporters + flyerGain(next));
-    next.lastUpdatedAt = Date.now();
+    reward(next, flyerGain(next));
     return next;
   }
-
-  function collectDonation(state) {
-    const next = normalizeState(state);
-    if (!unlocks(next).donations) return next;
-    next.euros = round(next.euros + CONFIG.donationClickEuros);
-    next.lastUpdatedAt = Date.now();
-    return next;
-  }
-
   function buyHelper(state) {
     const next = normalizeState(state);
-    const cost = helperCost(next);
-    if (next.euros < cost) return next;
-    next.euros = round(next.euros - cost);
-    next.helpers += 1;
-    next.lastUpdatedAt = Date.now();
+    if (!canBuyHelper(next)) return next;
+    const progress = next.street.elapsed / standStats(next).duration;
+    next.supporters -= helperCost(next);
+    next.helpers++;
+    next.street.elapsed = progress * standStats(next).duration;
+    next.street.active = true;
     return next;
   }
-
-  function buyStand(state) {
+  function upgradeStand(state) {
     const next = normalizeState(state);
-    if (next.standOwned || next.euros < CONFIG.stand.cost) return next;
-    next.euros = round(next.euros - CONFIG.stand.cost);
-    next.standOwned = true;
-    next.lastUpdatedAt = Date.now();
+    if (!canUpgrade(next)) return next;
+    const progress = next.street.elapsed / standStats(next).duration;
+    next.supporters -= upgradeCost(next);
+    next.standLevel++;
+    next.street.elapsed = progress * standStats(next).duration;
     return next;
   }
-
   function buyOffice(state) {
     const next = normalizeState(state);
-    if (next.officeOwned || next.euros < CONFIG.office.cost) return next;
-    next.euros = round(next.euros - CONFIG.office.cost);
-    next.officeOwned = true;
-    next.lastUpdatedAt = Date.now();
+    if (!canBuyOffice(next)) return next;
+    next.supporters -= CONFIG.officeCost;
+    next.office.phase = 'building';
+    next.office.buildRemaining = CONFIG.buildSeconds;
     return next;
   }
-
-  function runElection(state) {
+  function upgradeOffice(state) {
     const next = normalizeState(state);
-    if (!canRunElection(next)) return next;
-    next.euros = round(next.euros - CONFIG.election.entryCost);
-    next.electionFinished = true;
-    next.lastUpdatedAt = Date.now();
+    if (!canUpgradeOffice(next)) return next;
+    next.supporters -= officeUpgradeCost(next);
+    next.office.level++;
     return next;
   }
-
+  function reward(next, amount) {
+    next.supporters = money(next.supporters + amount);
+    next.totalSupporters = money(next.totalSupporters + amount);
+  }
+  // O(1) catch-up: production never reads a DOM node, NPC or animation event.
+  function advanceCycle(next, cycle, seconds, stats, automatic) {
+    const elapsed = cycle.elapsed + seconds;
+    const completed = Math.floor((elapsed + 1e-9) / stats.duration);
+    if (completed > 0) {
+      const count = automatic ? completed : 1;
+      reward(next, count * stats.output);
+      cycle.cycles += count;
+      cycle.elapsed = automatic ? Math.max(0, elapsed - completed * stats.duration) : 0;
+      if (!automatic) cycle.active = false;
+    } else cycle.elapsed = elapsed;
+  }
   function tick(state, deltaSeconds) {
     const next = normalizeState(state);
-    if (next.electionFinished) return next;
-    const seconds = Math.max(0, Number(deltaSeconds) || 0);
-    next.supporters = round(next.supporters + supporterRate(next) * seconds);
-    next.euros = round(next.euros + euroRate(next) * seconds);
-    next.lastUpdatedAt = Date.now();
+    const seconds = clamp(deltaSeconds, 0, CONFIG.offlineLimit);
+    if (next.street.active) advanceCycle(next, next.street, seconds, standStats(next), next.helpers > 0);
+    let officeSeconds = seconds;
+    if (next.office.phase === 'building') {
+      officeSeconds = Math.max(0, seconds - next.office.buildRemaining);
+      next.office.buildRemaining = Math.max(0, next.office.buildRemaining - seconds);
+      if (officeSeconds < 1e-9) officeSeconds = 0;
+      if (next.office.buildRemaining < 1e-9) next.office.buildRemaining = 0;
+      if (next.office.buildRemaining === 0) next.office.phase = 'ready';
+    }
+    if (next.office.phase === 'ready') advanceCycle(next, next.office, officeSeconds, officeStats(next), true);
     return next;
   }
-
-  return {
-    CONFIG,
-    createInitialState,
-    normalizeState,
-    helperCost,
-    flyerGain,
-    supporterRate,
-    euroRate,
-    unlocks,
-    worldStage,
-    canBuyHelper,
-    canBuyStand,
-    canBuyOffice,
-    canRunElection,
-    distributeFlyer,
-    collectDonation,
-    buyHelper,
-    buyStand,
-    buyOffice,
-    runElection,
-    tick,
-  };
+  function supporterRate(state) {
+    const stand = standStats(state), office = officeStats(state);
+    return (state.helpers ? stand.output / stand.duration : 0) +
+      (state.office.phase === 'ready' ? office.output / office.duration : 0);
+  }
+  return { CONFIG, createInitialState, normalizeState, standStats, officeStats, standTier,
+    helperCost, upgradeCost, officeUpgradeCost, canBuyHelper, canUpgrade, canBuyOffice,
+    canUpgradeOffice, flyerGain, distributeFlyer, buyHelper, upgradeStand, buyOffice, upgradeOffice, tick, supporterRate };
 });
