@@ -201,7 +201,11 @@
         [...pedestrians.children].forEach((node,i)=>{
           const route = pedestrianAt(i,time);
           node.hidden = !route.visible;
-          if(route.visible) pose(node,route.x,route.y,'walking',time+i,false,1);
+          if(route.visible) {
+            // Once automation exists, passers visibly leave the stand with flyers.
+            const carriesFlyer = state.teamLevel > 0 && route.x > 610 && route.x < 930;
+            pose(node,route.x,route.y,'walking',time+i,carriesFlyer,1);
+          }
         });
 
         recipient.hidden = !manualActive;
