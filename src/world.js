@@ -7,11 +7,16 @@
   const WIDTH = 2400;
   // Fixed slots, finite lifetimes, no collision or pathfinding state to accumulate.
   function pedestrianAt(slot, seconds) {
-    const age = (seconds + slot * 11) % 64;
-    const direction = slot % 2 ? -1 : 1;
-    const visible = age < 48;
-    return { visible, x: direction === 1 ? -40 + age * 52 : WIDTH + 40 - age * 52,
-      y: slot % 2 ? 347 : 361, direction, walking: true };
+    // Ambient passers now share a readable left-to-right flow instead of wandering randomly.
+    const age = (seconds + slot * 13) % 58;
+    const visible = age < 44;
+    return {
+      visible,
+      x: -55 + age * 56,
+      y: slot % 2 ? 347 : 361,
+      direction: 1,
+      walking: true,
+    };
   }
   function interactionAt(progress) {
     const p = Math.max(0, Math.min(1, progress));
@@ -123,12 +128,15 @@
     const workers = doc.querySelector('[data-workers]');
     const pedestrians = doc.querySelector('[data-pedestrians]');
     const recipient = doc.querySelector('[data-recipient]');
-    pedestrians.innerHTML = Array.from({length: 5}, (_,i)=>personMarkup(i)).join('');
+    pedestrians.innerHTML = Array.from({length: 4}, (_,i)=>personMarkup(i)).join('');
     recipient.innerHTML = personMarkup(4);
     doc.querySelector('[data-office-worker]').innerHTML = personMarkup(0);
     doc.querySelector('[data-office-walker]').innerHTML = personMarkup(3);
     let helperCount = -1;
+    let manualStartedAt = -999;
+    let flyerSerial = 0;
     const stand = doc.querySelector('[data-stand]'), office = doc.querySelector('[data-office]');
+    const flyerEffects = doc.querySelector('[data-flyer-effects]');
     const reduced = doc.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function pose(node, x, y, mode, time, flyer=false, direction=1) {
       node.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px) scaleX(${direction})`;
@@ -138,33 +146,77 @@
       node.style.setProperty('--breath', `${reduced ? 0 : Math.floor(Math.sin(time*2)+1)}px`);
     }
     return {
+      triggerFlyer(time) {
+        manualStartedAt = time;
+        flyerSerial++;
+        if (!flyerEffects) return;
+        if (flyerEffects.childElementCount >= 7) flyerEffects.firstElementChild.remove();
+        const flyer = doc.createElement('i');
+        flyer.className = 'flyer-projectile';
+        flyer.style.setProperty('--flyer-arc', (flyerSerial % 2 ? '-12px' : '-22px'));
+        flyerEffects.append(flyer);
+        flyer.addEventListener('animationend', () => flyer.remove(), { once: true });
+        setTimeout(() => flyer.remove(), 900);
+      },
       render(state, time, game) {
         const tier = game.standTier(state);
         stand.dataset.tier = tier;
         office.dataset.phase = state.office.phase;
         office.dataset.level = state.office.level;
         office.style.setProperty('--build-inset', `${state.office.buildRemaining / game.CONFIG.buildSeconds * 100}%`);
-        if(helperCount !== state.helpers) {
-          workers.innerHTML = Array.from({length: state.helpers+1},(_,i)=>personMarkup(i, i ? 'helper' : 'candidate')).join('');
-          helperCount = state.helpers;
+
+        const visibleHelpers = game.visibleHelpers(state);
+        if(helperCount !== visibleHelpers) {
+          workers.innerHTML = Array.from(
+            {length: visibleHelpers + 1},
+            (_,i)=>personMarkup(i, i ? 'helper' : 'candidate')
+          ).join('');
+          helperCount = visibleHelpers;
         }
-        const progress = state.street.elapsed / game.standStats(state).duration;
-        const interaction = interactionAt(progress);
+
+        const manualAge = time - manualStartedAt;
+        const manualActive = manualAge >= 0 && manualAge < 1.15;
+        const manualProgress = manualActive ? Math.min(1, manualAge / 1.15) : 0;
+        const interaction = interactionAt(manualProgress);
+
         [...workers.children].forEach((node,i)=>{
-          const active = state.street.active && i === (state.helpers ? 1 : 0);
-          const x = [82,150,112,40,-5][i];
-          const travel = active ? interaction.workerOffset / 38 : 0;
-          pose(node, x + travel * (178-x), i === 1 ? 113 : 87 + travel * 26,
-            active ? (interaction.working ? 'working' : 'walking') : i && state.street.active ? 'working' : 'idle',time+i,active);
+          const candidateActive = manualActive && i === 0;
+          const baseX = [82,150,112,40,-5][i] ?? 20;
+          const travel = candidateActive ? interaction.workerOffset / 38 : 0;
+          const mode = candidateActive
+            ? (interaction.working ? 'working' : 'walking')
+            : i > 0 && state.teamLevel
+              ? 'working'
+              : 'idle';
+          pose(
+            node,
+            baseX + travel * (178 - baseX),
+            i === 1 ? 113 : 87 + travel * 26,
+            mode,
+            time + i,
+            candidateActive
+          );
         });
+
         [...pedestrians.children].forEach((node,i)=>{
           const route = pedestrianAt(i,time);
           node.hidden = !route.visible;
-          if(route.visible) pose(node,route.x,route.y,'walking',time+i,false,route.direction);
+          if(route.visible) pose(node,route.x,route.y,'walking',time+i,false,1);
         });
-        recipient.hidden = !state.street.active;
-        pose(recipient.firstElementChild,interaction.x,interaction.y,
-          interaction.walking ? 'walking' : 'idle',time,interaction.flyer);
+
+        recipient.hidden = !manualActive;
+        if (manualActive) {
+          pose(
+            recipient.firstElementChild,
+            interaction.x,
+            interaction.y,
+            interaction.walking ? 'walking' : 'idle',
+            time,
+            interaction.flyer,
+            1
+          );
+        }
+
         const officeProgress = state.office.elapsed / game.officeStats(state).duration;
         pose(doc.querySelector('[data-office-worker] .person'),0,0,'working',time);
         pose(doc.querySelector('[data-office-walker] .person'),Math.sin(officeProgress*Math.PI*2)*24,0,'walking',time);
