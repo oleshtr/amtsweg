@@ -439,3 +439,108 @@ body { overflow: hidden; background: #294a41; }
   .flyer-action { left: 426px; }
   .journey { min-height: 38px; padding: 6px 10px; }
 }
+
+
+/* Incremental street-stand milestones + direct click feedback */
+.flyer-effects {
+  position: absolute;
+  inset: 0;
+  z-index: 16;
+  overflow: visible;
+  pointer-events: none;
+}
+.flyer-projectile {
+  position: absolute;
+  left: 566px;
+  top: 348px;
+  width: 17px;
+  height: 12px;
+  border: 2px solid #bca96e;
+  background: linear-gradient(#d87956 0 4px, #fff3c9 4px);
+  box-shadow: 2px 2px 0 #29483f33;
+  transform-origin: center;
+  animation: flyer-flight .68s cubic-bezier(.2,.72,.32,1) forwards;
+}
+.flyer-projectile:after {
+  content: "→";
+  position: absolute;
+  right: 1px;
+  bottom: -3px;
+  color: #42725e;
+  font: 900 9px monospace;
+}
+@keyframes flyer-flight {
+  0% { opacity: 0; transform: translate(0, 8px) rotate(-18deg) scale(.75); }
+  12% { opacity: 1; }
+  55% { transform: translate(52px, var(--flyer-arc, -16px)) rotate(7deg) scale(1.08); }
+  100% { opacity: 0; transform: translate(102px, 1px) rotate(22deg) scale(.92); }
+}
+
+/* Level 100 is a visible milestone without ending the business. */
+[data-tier="4"] .table {
+  width: 174px;
+  left: 20px;
+}
+[data-tier="4"] .table > span,
+[data-tier="4"] .poster,
+[data-tier="4"] .canopy,
+[data-tier="4"] .stand-pole,
+[data-tier="4"] .stand-banner,
+[data-tier="4"] .stand-light {
+  display: block;
+}
+[data-tier="4"] .canopy {
+  position: absolute;
+  width: 270px;
+  left: -25px;
+  top: 3px;
+  height: 47px;
+  background: repeating-linear-gradient(90deg,#3f715f 0 45px,#eadfbd 45px 90px);
+  border-bottom: 8px solid #2f574a;
+  clip-path: polygon(13% 0,87% 0,100% 73%,100% 100%,0 100%,0 73%);
+  z-index: 6;
+}
+[data-tier="4"] .canopy span {
+  bottom: 3px;
+  font-size: 8px;
+}
+[data-tier="4"] .stand-pole {
+  position: absolute;
+  top: 45px;
+  width: 5px;
+  height: 120px;
+  background: #617a69;
+  box-shadow: 2px 0 #d7dac0;
+  z-index: 3;
+}
+[data-tier="4"] .pole-left { left: -14px; }
+[data-tier="4"] .pole-right { left: 230px; }
+[data-tier="4"] .stand-banner {
+  position: absolute;
+  top: -23px;
+  left: 2px;
+  padding: 7px 16px;
+  color: #2f5547;
+  background: #f0c86f;
+  border: 2px solid #9b7b42;
+  box-shadow: 3px 3px 0 #2f4d4330;
+  font: 900 9px monospace;
+}
+[data-tier="4"] .stand-light {
+  position: absolute;
+  top: 56px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffe08a;
+  box-shadow: 38px 0 #ffe08a,76px 0 #ffe08a,114px 0 #ffe08a,152px 0 #ffe08a,190px 0 #ffe08a,228px 0 #ffe08a;
+}
+
+/* Cost tags are allowed to grow for later incremental values without clipping. */
+.upgrade-cost {
+  width: max-content;
+  max-width: 92px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
