@@ -451,15 +451,15 @@ body { overflow: hidden; background: #294a41; }
 }
 .flyer-projectile {
   position: absolute;
-  left: 566px;
-  top: 348px;
+  left: 525px;
+  top: 350px;
   width: 17px;
   height: 12px;
   border: 2px solid #bca96e;
   background: linear-gradient(#d87956 0 4px, #fff3c9 4px);
   box-shadow: 2px 2px 0 #29483f33;
   transform-origin: center;
-  animation: flyer-flight .68s cubic-bezier(.2,.72,.32,1) forwards;
+  animation: flyer-flight .72s cubic-bezier(.15,.7,.25,1) var(--flyer-delay, 0ms) forwards;
 }
 .flyer-projectile:after {
   content: "→";
@@ -470,10 +470,31 @@ body { overflow: hidden; background: #294a41; }
   font: 900 9px monospace;
 }
 @keyframes flyer-flight {
-  0% { opacity: 0; transform: translate(0, 8px) rotate(-18deg) scale(.75); }
-  12% { opacity: 1; }
-  55% { transform: translate(52px, var(--flyer-arc, -16px)) rotate(7deg) scale(1.08); }
-  100% { opacity: 0; transform: translate(102px, 1px) rotate(22deg) scale(.92); }
+  0% {
+    opacity: 0;
+    transform: translate(0, 10px) rotate(-18deg) scale(.7);
+  }
+  10% { opacity: 1; }
+  58% {
+    opacity: 1;
+    transform:
+      translate(calc(var(--flyer-x, 90px) * .64), calc(var(--flyer-y, -80px) * .78))
+      rotate(calc(var(--flyer-rot, 16deg) * .45))
+      scale(var(--flyer-scale, 1));
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(var(--flyer-x, 90px), calc(var(--flyer-y, -80px) + 20px))
+      rotate(var(--flyer-rot, 16deg))
+      scale(.82);
+  }
+}
+.stand-site.is-throwing .candidate .arm.right {
+  transform: rotate(-112deg);
+}
+.stand-site.is-throwing .candidate .body {
+  transform: translateY(-1px) rotate(-2deg);
 }
 
 /* Level 100 is a visible milestone without ending the business. */
