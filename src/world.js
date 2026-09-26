@@ -157,23 +157,26 @@
         if (!flyerEffects) return;
         while (flyerEffects.childElementCount > 12) flyerEffects.firstElementChild.remove();
 
+        // A manual click should feel like throwing a handful of real flyers into the air.
         const burst = [
-          { x: 72, y: -72, rot: -24, delay: 0 },
-          { x: 108, y: -108, rot: 12, delay: 28 },
-          { x: 136, y: -62, rot: 31, delay: 56 },
+          { x: -105, y: -185, rot: -34, delay: 0, scale: .92 },
+          { x: -48,  y: -235, rot: -15, delay: 18, scale: 1.02 },
+          { x: 14,   y: -260, rot: 8,   delay: 34, scale: 1.12 },
+          { x: 70,   y: -220, rot: 24,  delay: 50, scale: 1.02 },
+          { x: 125,  y: -170, rot: 39,  delay: 68, scale: .92 },
         ];
 
-        burst.forEach((shot, index) => {
+        burst.forEach((shot) => {
           const flyer = doc.createElement('i');
           flyer.className = 'flyer-projectile';
           flyer.style.setProperty('--flyer-x', shot.x + 'px');
           flyer.style.setProperty('--flyer-y', shot.y + 'px');
           flyer.style.setProperty('--flyer-rot', shot.rot + 'deg');
           flyer.style.setProperty('--flyer-delay', shot.delay + 'ms');
-          flyer.style.setProperty('--flyer-scale', index === 1 ? '1.08' : '.94');
+          flyer.style.setProperty('--flyer-scale', String(shot.scale));
           flyerEffects.append(flyer);
           flyer.addEventListener('animationend', () => flyer.remove(), { once: true });
-          setTimeout(() => flyer.remove(), 950);
+          setTimeout(() => flyer.remove(), 1250);
         });
       },
       render(state, time, game) {
