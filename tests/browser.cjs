@@ -37,7 +37,8 @@ function check(name, condition) {
 
     await page.locator('[data-action="start"]').click();
     check('flyer click rewards immediately', await page.locator('[data-supporters]').innerText() === '1');
-    check('flyer click spawns a visible feedback element', await page.locator('.flyer-projectile').count() > 0);
+    check('flyer click throws a three-flyer burst', await page.locator('.flyer-projectile').count() >= 3);
+    check('manual click does not summon a recipient NPC', await page.locator('[data-recipient]').isHidden());
 
     for (let i = 0; i < 9; i++) await page.locator('[data-action="start"]').click();
     await page.locator('[data-action="upgrade"]').click();
