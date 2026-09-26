@@ -445,49 +445,65 @@ body { overflow: hidden; background: #294a41; }
 .flyer-effects {
   position: absolute;
   inset: 0;
-  z-index: 16;
+  z-index: 24;
   overflow: visible;
   pointer-events: none;
 }
 .flyer-projectile {
   position: absolute;
-  left: 525px;
-  top: 350px;
-  width: 17px;
-  height: 12px;
-  border: 2px solid #bca96e;
-  background: linear-gradient(#d87956 0 4px, #fff3c9 4px);
-  box-shadow: 2px 2px 0 #29483f33;
-  transform-origin: center;
-  animation: flyer-flight .72s cubic-bezier(.15,.7,.25,1) var(--flyer-delay, 0ms) forwards;
+  left: 520px;
+  top: 360px;
+  width: 27px;
+  height: 36px;
+  border: 2px solid #a7925d;
+  background:
+    linear-gradient(#d97855 0 8px, transparent 8px),
+    linear-gradient(#f8efc9 0 100%);
+  box-shadow: 3px 4px 0 #29483f38;
+  transform-origin: 50% 80%;
+  opacity: 0;
+  animation: flyer-flight 1.02s cubic-bezier(.12,.66,.22,1) var(--flyer-delay, 0ms) forwards;
+}
+.flyer-projectile:before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: 13px;
+  height: 3px;
+  background: #56856f;
+  box-shadow: 0 6px #d2c69b, 0 12px #d2c69b;
 }
 .flyer-projectile:after {
   content: "→";
   position: absolute;
-  right: 1px;
-  bottom: -3px;
+  right: 3px;
+  bottom: 0;
   color: #42725e;
-  font: 900 9px monospace;
+  font: 900 13px/1 monospace;
 }
 @keyframes flyer-flight {
   0% {
     opacity: 0;
-    transform: translate(0, 10px) rotate(-18deg) scale(.7);
+    transform: translate(0, 12px) rotate(-8deg) scale(.55);
   }
-  10% { opacity: 1; }
-  58% {
+  8% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(-4deg) scale(.9);
+  }
+  62% {
     opacity: 1;
     transform:
-      translate(calc(var(--flyer-x, 90px) * .64), calc(var(--flyer-y, -80px) * .78))
-      rotate(calc(var(--flyer-rot, 16deg) * .45))
+      translate(calc(var(--flyer-x, 0px) * .72), var(--flyer-y, -220px))
+      rotate(calc(var(--flyer-rot, 0deg) * .72))
       scale(var(--flyer-scale, 1));
   }
   100% {
     opacity: 0;
     transform:
-      translate(var(--flyer-x, 90px), calc(var(--flyer-y, -80px) + 20px))
-      rotate(var(--flyer-rot, 16deg))
-      scale(.82);
+      translate(var(--flyer-x, 0px), calc(var(--flyer-y, -220px) + 42px))
+      rotate(var(--flyer-rot, 0deg))
+      scale(calc(var(--flyer-scale, 1) * .9));
   }
 }
 .stand-site.is-throwing .candidate .arm.right {
