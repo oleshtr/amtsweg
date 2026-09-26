@@ -133,8 +133,8 @@
     doc.querySelector('[data-office-worker]').innerHTML = personMarkup(0);
     doc.querySelector('[data-office-walker]').innerHTML = personMarkup(3);
     let helperCount = -1;
-    let manualStartedAt = -999;
     let flyerSerial = 0;
+    let throwTimer;
     const stand = doc.querySelector('[data-stand]'), office = doc.querySelector('[data-office]');
     const flyerEffects = doc.querySelector('[data-flyer-effects]');
     const reduced = doc.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -146,17 +146,35 @@
       node.style.setProperty('--breath', `${reduced ? 0 : Math.floor(Math.sin(time*2)+1)}px`);
     }
     return {
-      triggerFlyer(time) {
-        manualStartedAt = time;
+      triggerFlyer() {
         flyerSerial++;
+        stand.classList.remove('is-throwing');
+        void stand.offsetWidth;
+        stand.classList.add('is-throwing');
+        clearTimeout(throwTimer);
+        throwTimer = setTimeout(() => stand.classList.remove('is-throwing'), 220);
+
         if (!flyerEffects) return;
-        if (flyerEffects.childElementCount >= 7) flyerEffects.firstElementChild.remove();
-        const flyer = doc.createElement('i');
-        flyer.className = 'flyer-projectile';
-        flyer.style.setProperty('--flyer-arc', (flyerSerial % 2 ? '-12px' : '-22px'));
-        flyerEffects.append(flyer);
-        flyer.addEventListener('animationend', () => flyer.remove(), { once: true });
-        setTimeout(() => flyer.remove(), 900);
+        while (flyerEffects.childElementCount > 12) flyerEffects.firstElementChild.remove();
+
+        const burst = [
+          { x: 72, y: -72, rot: -24, delay: 0 },
+          { x: 108, y: -108, rot: 12, delay: 28 },
+          { x: 136, y: -62, rot: 31, delay: 56 },
+        ];
+
+        burst.forEach((shot, index) => {
+          const flyer = doc.createElement('i');
+          flyer.className = 'flyer-projectile';
+          flyer.style.setProperty('--flyer-x', shot.x + 'px');
+          flyer.style.setProperty('--flyer-y', shot.y + 'px');
+          flyer.style.setProperty('--flyer-rot', shot.rot + 'deg');
+          flyer.style.setProperty('--flyer-delay', shot.delay + 'ms');
+          flyer.style.setProperty('--flyer-scale', index === 1 ? '1.08' : '.94');
+          flyerEffects.append(flyer);
+          flyer.addEventListener('animationend', () => flyer.remove(), { once: true });
+          setTimeout(() => flyer.remove(), 950);
+        });
       },
       render(state, time, game) {
         const tier = game.standTier(state);
@@ -174,27 +192,16 @@
           helperCount = visibleHelpers;
         }
 
-        const manualAge = time - manualStartedAt;
-        const manualActive = manualAge >= 0 && manualAge < 1.15;
-        const manualProgress = manualActive ? Math.min(1, manualAge / 1.15) : 0;
-        const interaction = interactionAt(manualProgress);
-
         [...workers.children].forEach((node,i)=>{
-          const candidateActive = manualActive && i === 0;
           const baseX = [82,150,112,40,-5][i] ?? 20;
-          const travel = candidateActive ? interaction.workerOffset / 38 : 0;
-          const mode = candidateActive
-            ? (interaction.working ? 'working' : 'walking')
-            : i > 0 && state.teamLevel
-              ? 'working'
-              : 'idle';
+          const mode = i > 0 && state.teamLevel ? 'working' : 'idle';
           pose(
             node,
-            baseX + travel * (178 - baseX),
-            i === 1 ? 113 : 87 + travel * 26,
+            baseX,
+            i === 1 ? 113 : 87,
             mode,
             time + i,
-            candidateActive
+            false
           );
         });
 
@@ -208,18 +215,8 @@
           }
         });
 
-        recipient.hidden = !manualActive;
-        if (manualActive) {
-          pose(
-            recipient.firstElementChild,
-            interaction.x,
-            interaction.y,
-            interaction.walking ? 'walking' : 'idle',
-            time,
-            interaction.flyer,
-            1
-          );
-        }
+        // Manual clicks are direct flyer throws now; no NPC is summoned for each click.
+        recipient.hidden = true;
 
         const officeProgress = state.office.elapsed / game.officeStats(state).duration;
         pose(doc.querySelector('[data-office-worker] .person'),0,0,'working',time);
